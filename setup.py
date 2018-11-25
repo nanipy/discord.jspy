@@ -9,12 +9,12 @@ with open('requirements.txt') as f:
 
 version = String();
 with open('discord/__init__.py') as f:
-    version = String(f.read()).match('^__version__\s*=\s*[\'"]([^\'"]*)[\'"]');
+    version = String(f.read()).match('__version__\s*=\s*[\'"]([^\'"]*)[\'"]')[0];
 
 if not version:
     raise RuntimeError('version is not set');
 
-if version.endsWith(Array([String('a'), String('b'), String('rc')])):
+if version.endsWith((String('a'), String('b'), String('rc'))):
     # append version identifier based on commit count
     try:
         subprocess = require("subprocess");
@@ -44,7 +44,7 @@ extras_require = {
     ])
 };
 
-setup(name=String('discord.py'),
+setuptools.setup(name=String('discord.py'),
       author=String('Rapptz'),
       url=String('https://github.com/Rapptz/discord.py'),
       version=version,
