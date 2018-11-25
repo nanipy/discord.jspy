@@ -41,11 +41,11 @@ packages = Array([String('discord'), String('discord.ext.commands')]);
 for dir in os.listdir(String('discord{}addons').format(os.sep)):
     dir = String(dir);
     if not dir.endsWith(String('.py')) and not dir.startsWith(String('__')):
-        packages.push(dir);
+        packages.push(String('discord.addons.{}').format(dir));
         for dir2 in os.listdir(String('discord{0}addons{0}{1}').format(os.sep, dir)):
             dir2 = String(dir2);
             if not dir2.endswith(String('.py')) and not dir2.startsWith(String('__')):
-                packages.push(String("{}.{}").format(dir, dir2));
+                packages.push(String("discord.addons.{}.{}").format(dir, dir2));
 
 extras_require = {
     String('voice'): Array([String('PyNaCl==1.2.1')]),
