@@ -5,7 +5,7 @@ re = require("re");
 
 requirements = Array();
 with open('requirements.txt') as f:
-  requirements = Array([String(f.read()).split("\n")]);
+  requirements = Array([String(f.read())._split("\n")]);
 
 version = String();
 with open('discord/__init__.py') as f:
