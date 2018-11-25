@@ -16,7 +16,7 @@ import subprocess
 import traceback
 import typing
 
-import discordjspy
+import discordjspy as discord
 from discordjspy.ext import commands
 
 

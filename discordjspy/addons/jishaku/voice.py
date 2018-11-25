@@ -26,10 +26,10 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
     Check for whether VC is available in this bot.
     """
 
-    if not discord.voice_client.has_nacl:
+    if not discordjspy.voice_client.has_nacl:
         raise commands.CheckFailure("voice cannot be used because PyNaCl is not loaded")
 
-    if not discord.opus.is_loaded():
+    if not discordjspy.opus.is_loaded():
         raise commands.CheckFailure("voice cannot be used because libopus is not loaded")
 
     return True
@@ -68,7 +68,7 @@ BASIC_OPTS = {
 }
 
 
-class BasicYouTubeDLSource(discord.FFmpegPCMAudio):
+class BasicYouTubeDLSource(discordjspy.FFmpegPCMAudio):
     """
     Basic audio source for youtube_dl-compatible URLs.
     """

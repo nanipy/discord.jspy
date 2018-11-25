@@ -23,7 +23,7 @@ import time
 import traceback
 import typing
 
-import discordjspy
+import discordjspy as discord
 import humanize
 from discordjspy.ext import commands
 
