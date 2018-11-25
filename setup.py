@@ -1,4 +1,4 @@
-from js import Array, require, String, Boolean;
+from js import Array, require, String;
 
 setuptools = require("setuptools");
 re = require("re");
@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 
 version = String();
 with open('discord/__init__.py') as f:
-    version = String(f.read()).match(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]')[0];
+    version = String(f.read()).match(String('__version__\s*=\s*[\'"]([^\'"]*)[\'"]'))[0];
 
 if not version:
     raise RuntimeError('version is not set');
@@ -52,7 +52,7 @@ setuptools.setup(name=String('discord.py'),
       license=String('MIT'),
       description=String('A python wrapper for the Discord API'),
       long_description=readme,
-      include_package_data=Boolean(True),
+      include_package_data=True, # 'include_package_data' must be a boolean value, sadly we can't inherit from bool
       install_requires=requirements,
       extras_require=extras_require,
       python_requires=String('>=3.5.3'),
