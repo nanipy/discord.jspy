@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
 
 version = String();
 with open('discord/__init__.py') as f:
-    version = String(f.read()).search('^__version__\s*=\s*[\'"]([^\'"]*)[\'"]');
+    version = String(f.read()).match('^__version__\s*=\s*[\'"]([^\'"]*)[\'"]');
 
 if not version:
     raise RuntimeError('version is not set');
