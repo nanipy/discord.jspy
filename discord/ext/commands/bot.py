@@ -785,7 +785,7 @@ class BotBase(GroupMixin):
             The addon to load.
         """
 
-        allowed = "{}{}addons".format(os.listdir(os.sep.join(__file__.split(os.sep)[:-3])), os.sep)
+        allowed = os.listdir("{}{}addons".format(os.sep.join(__file__.split(os.sep)[:-3]), os.sep))
         if not name in allowed:
             raise ValueError("'{}' is not one of the valid addons ({})!".format(name, allowed))
         self.load_extension(name)
