@@ -2,6 +2,7 @@ from js import Array, require, String;
 
 setuptools = require("setuptools");
 re = require("re");
+os = require("os");
 
 requirements = Array();
 with open('requirements.txt') as f:
@@ -35,6 +36,17 @@ readme = String();
 with open('README.rst') as f:
     readme = String(f.read());
 
+packages = Array([String('discord'), String('discord.ext.commands')]);
+
+for dir in os.listdir(String('discord{}addons').format(os.sep)):
+    dir = String(dir);
+    if not dir.endsWith(String('.py')) and not dir.startsWith(String('__')):
+        packages.push(dir);
+        for dir2 in os.listdir(String('discord{0}addons{0}{1}').format(os.sep, dir)):
+            dir2 = String(dir2);
+            if not dir2.endswith(String('.py')) and not dir2.startsWith(String('__')):
+                packages.push(String("{}.{}").format(dir, dir2));
+
 extras_require = {
     String('voice'): Array([String('PyNaCl==1.2.1')]),
     String('docs'): Array([
@@ -48,7 +60,7 @@ setuptools.setup(name=String('discord.py'),
       author=String('Rapptz'),
       url=String('https://github.com/Rapptz/discord.py'),
       version=version,
-      packages=Array([String('discord'), String('discord.ext.commands'), String('discord.addons.jishaku')]),
+      packages=packages,
       license=String('MIT'),
       description=String('A python wrapper for the Discord API'),
       long_description=readme,
