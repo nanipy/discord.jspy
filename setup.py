@@ -53,7 +53,7 @@ extras_require = {
         String('sphinx==1.7.4'),
         String('sphinxcontrib-asyncio'),
         String('sphinxcontrib-websupport'),
-    ])
+    ]),
     String('addons'): Array([
         String('humanize'), # for jishaku
     ])
