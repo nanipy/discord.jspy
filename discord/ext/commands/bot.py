@@ -41,7 +41,7 @@ from .context import Context
 from .errors import CommandNotFound, CommandError
 from .formatter import HelpFormatter
 
-sys.path.insert(0, "{}{}addons".format(os.sep.join(__file__.split(os.sep)[:-1]), os.sep)) # to make addon enabling work
+sys.path.insert(0, "{}{}addons".format(os.sep.join(__file__.split(os.sep)[:-3]), os.sep)) # to make addon enabling work
 
 def when_mentioned(bot, msg):
     """A callable that implements a command prefix equivalent to being mentioned.
@@ -775,7 +775,17 @@ class BotBase(GroupMixin):
     # allow using addons
 
     def enable(self, name):
-        allowed = os.listdir(os.sep.join(__file__.split(os.sep)[:-1]))
+        """Enables an addon.
+
+        An addon is a package coming along with discord.jspy and works like a normal extension to load.
+
+        Parameters
+        ------------
+        name: str
+            The addon to load.
+        """
+
+        allowed = "{}{}addons".format(os.listdir(os.sep.join(__file__.split(os.sep)[:-3])), os.sep)
         if not name in allowed:
             raise ValueError("'{}' is not one of the valid addons ({})!".format(name, allowed))
         self.load_extension(name)
