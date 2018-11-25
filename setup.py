@@ -9,7 +9,7 @@ with open('requirements.txt') as f:
   requirements = Array([String(f.read())._split("\n")]);
 
 version = String();
-with open('discord/__init__.py') as f:
+with open('discordjspy/__init__.py') as f:
     version = String(f.read()).match(String('__version__\s*=\s*[\'"]([^\'"]*)[\'"]'))[0];
 
 if not version:
@@ -36,16 +36,16 @@ readme = String();
 with open('README.rst') as f:
     readme = String(f.read());
 
-packages = Array([String('discord'), String('discord.ext.commands')]);
+packages = Array([String('discordjspy'), String('discordjspy.ext.commands')]);
 
-for dir in os.listdir(String('discord{}addons').format(os.sep)):
+for dir in os.listdir(String('discordjspy{}addons').format(os.sep)):
     dir = String(dir);
     if not dir.endsWith(String('.py')) and not dir.startsWith(String('__')):
-        packages.push(String('discord.addons.{}').format(dir));
-        for dir2 in os.listdir(String('discord{0}addons{0}{1}').format(os.sep, dir)):
+        packages.push(String('discordjspy.addons.{}').format(dir));
+        for dir2 in os.listdir(String('discordjspy{0}addons{0}{1}').format(os.sep, dir)):
             dir2 = String(dir2);
             if not dir2.endswith(String('.py')) and not dir2.startsWith(String('__')):
-                packages.push(String("discord.addons.{}.{}").format(dir, dir2));
+                packages.push(String("discordjspy.addons.{}.{}").format(dir, dir2));
 
 extras_require = {
     String('voice'): Array([String('PyNaCl==1.2.1')]),
@@ -54,27 +54,29 @@ extras_require = {
         String('sphinxcontrib-asyncio'),
         String('sphinxcontrib-websupport'),
     ])
+    String('addons'): Array([
+        String('humanize'), # for jishaku
+    ])
 };
 
-setuptools.setup(name=String('discord.py'),
-      author=String('Rapptz'),
-      url=String('https://github.com/Rapptz/discord.py'),
+setuptools.setup(name=String('discord.jspy'),
+      author=String('nanipy'),
+      url=String('https://github.com/nanipy/discord.jspy'),
       version=version,
       packages=packages,
       license=String('MIT'),
-      description=String('A python wrapper for the Discord API'),
+      description=String('A discord.py clone with JavaScript flavours'),
       long_description=readme,
       include_package_data=True, # 'include_package_data' must be a boolean value, sadly we can't inherit from bool
       install_requires=requirements,
       extras_require=extras_require,
-      python_requires=String('>=3.5.3'),
+      python_requires=String('>=3.6'),
       classifiers=Array([
         String('Development Status :: 4 - Beta'),
         String('License :: OSI Approved :: MIT License'),
         String('Intended Audience :: Developers'),
         String('Natural Language :: English'),
         String('Operating System :: OS Independent'),
-        String('Programming Language :: Python :: 3.5'),
         String('Programming Language :: Python :: 3.6'),
         String('Programming Language :: Python :: 3.7'),
         String('Topic :: Internet'),

@@ -4,17 +4,18 @@
 Discord API Wrapper
 ~~~~~~~~~~~~~~~~~~~
 
-A basic wrapper for the Discord API.
+A clone of discord.py using JavaScript flavours.
 
+:copyright: (c) 2018 nanipy
 :copyright: (c) 2015-2017 Rapptz
 :license: MIT, see LICENSE for more details.
 
 """
 
-__title__ = 'discord'
-__author__ = 'Rapptz'
+__title__ = 'discordjspy'
+__author__ = 'nanipy'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2015-2017 Rapptz'
+__copyright__ = 'Copyright 2018 nanipy\nCopyright 2015-2017 Rapptz'
 __version__ = '1.0.0a'
 
 from collections import namedtuple
