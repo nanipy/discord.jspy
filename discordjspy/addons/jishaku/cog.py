@@ -23,9 +23,9 @@ import time
 import traceback
 import typing
 
-import discord
+import discordjspy
 import humanize
-from discord.ext import commands
+from discordjspy.ext import commands
 
 from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor

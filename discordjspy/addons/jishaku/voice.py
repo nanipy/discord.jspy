@@ -11,9 +11,9 @@ Voice-related functions and classes.
 
 """
 
-import discord.opus
-import discord.voice_client
-from discord.ext import commands
+import discordjspy.opus
+import discordjspy.voice_client
+from discordjspy.ext import commands
 
 try:
     import youtube_dl

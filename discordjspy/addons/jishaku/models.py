@@ -13,7 +13,7 @@ Functions for modifying or interfacing with discord.py models.
 
 import copy
 
-from discord.ext import commands
+from discordjspy.ext import commands
 
 
 async def copy_context_with(ctx: commands.Context, *, author=None, **kwargs):

@@ -15,8 +15,8 @@ import asyncio
 import collections
 import re
 
-import discord
-from discord.ext import commands
+import discordjspy
+from discordjspy.ext import commands
 
 from jishaku.hljs import get_language
 

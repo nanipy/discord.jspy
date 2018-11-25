@@ -16,8 +16,8 @@ import subprocess
 import traceback
 import typing
 
-import discord
-from discord.ext import commands
+import discordjspy
+from discordjspy.ext import commands
 
 
 async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *exc_info):

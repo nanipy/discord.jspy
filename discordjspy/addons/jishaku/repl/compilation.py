@@ -23,8 +23,8 @@ async def _repl_coroutine({0}):
     import asyncio
 
     import aiohttp
-    import discord
-    from discord.ext import commands
+    import discordjspy
+    from discordjspy.ext import commands
 
     import jishaku
 

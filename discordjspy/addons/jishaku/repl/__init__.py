@@ -11,7 +11,7 @@ Repl-related operations and tools for Jishaku.
 
 """
 
-from discord.ext import commands
+from discordjspy.ext import commands
 
 # pylint: disable=wildcard-import
 from jishaku.repl.compilation import *  # noqa: F401

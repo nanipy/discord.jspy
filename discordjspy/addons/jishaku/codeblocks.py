@@ -14,7 +14,7 @@ Converters for detecting and obtaining codeblock content
 import re
 from collections import namedtuple
 
-from discord.ext import commands
+from discordjspy.ext import commands
 
 __all__ = ('Codeblock', 'CODEBLOCK_REGEX', 'CodeblockConverter')
 
