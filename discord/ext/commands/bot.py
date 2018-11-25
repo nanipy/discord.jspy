@@ -31,6 +31,7 @@ import importlib
 import sys
 import traceback
 import re
+import os
 
 import discord
 
@@ -39,6 +40,8 @@ from .view import StringView
 from .context import Context
 from .errors import CommandNotFound, CommandError
 from .formatter import HelpFormatter
+
+sys.path.insert(0, "{}{}addons".format(os.sep.join(__file__.split(os.sep)[:-1]), os.sep)) # to make addon enabling work
 
 def when_mentioned(bot, msg):
     """A callable that implements a command prefix equivalent to being mentioned.
@@ -768,6 +771,14 @@ class BotBase(GroupMixin):
             for module in list(sys.modules.keys()):
                 if _is_submodule(lib_name, module):
                     del sys.modules[module]
+
+    # allow using addons
+
+    def enable(self, name):
+        allowed = os.listdir(os.sep.join(__file__.split(os.sep)[:-1]))
+        if not name in allowed:
+            raise ValueError("'{}' is not one of the valid addons ({})!".format(name, allowed))
+        self.load_extension(name)
 
     # command processing
 
