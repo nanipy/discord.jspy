@@ -1,4 +1,4 @@
-from js import Array, require, String;
+from js import Array, require, String, Boolean;
 
 setuptools = require("setuptools");
 re = require("re");
@@ -52,7 +52,7 @@ setuptools.setup(name=String('discord.py'),
       license=String('MIT'),
       description=String('A python wrapper for the Discord API'),
       long_description=readme,
-      include_package_data=True,
+      include_package_data=Boolean(True),
       install_requires=requirements,
       extras_require=extras_require,
       python_requires=String('>=3.5.3'),
