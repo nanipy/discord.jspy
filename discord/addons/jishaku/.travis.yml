@@ -1,0 +1,14 @@
+dist: trusty
+language: python
+python:
+  - "3.6"
+before_script:
+  - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
+install:
+  - "pip install -U coverage flake8 isort pylint pytest pytest-cov"
+  - "pip install -U -r install_requires.txt"
+script:
+  - "pytest -vs --cov=jishaku --cov-report term-missing:skip-covered"
+  - "pip install -U ."
+  - "rm -rf jishaku"
+  - "pytest -vs"
