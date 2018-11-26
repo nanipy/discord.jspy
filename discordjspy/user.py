@@ -483,7 +483,7 @@ class ClientUser(BaseUser):
         data = await self._state.http.start_group(self.id, users)
         return GroupChannel(me=self, data=data, state=self._state)
 
-class User(BaseUser, discord.abc.Messageable):
+class User(BaseUser, discordjspy.abc.Messageable):
     """Represents a Discord user.
 
     .. container:: operations
