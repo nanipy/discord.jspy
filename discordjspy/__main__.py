@@ -28,7 +28,7 @@ import argparse
 import sys
 from pathlib import Path
 
-import discord
+import discordjspy as discord
 
 def core(parser, args):
     pass
