@@ -27,7 +27,7 @@ DEALINGS IN THE SOFTWARE.
 import re
 import inspect
 
-import discord
+import discordjspy as discord
 
 from .errors import BadArgument, NoPrivateMessage
 
