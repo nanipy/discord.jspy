@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 import itertools
 
-import discord.abc
+import discordjspy.abc
 
 from . import utils
 from .user import BaseUser, User
@@ -105,10 +105,10 @@ def flatten_user(cls):
 
     return cls
 
-_BaseUser = discord.abc.User
+_BaseUser = discordjspy.abc.User
 
 @flatten_user
-class Member(discord.abc.Messageable, _BaseUser):
+class Member(discordjspy.abc.Messageable, _BaseUser):
     """Represents a Discord member to a :class:`Guild`.
 
     This implements a lot of the functionality of :class:`User`.
