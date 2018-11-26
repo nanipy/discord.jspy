@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 from collections import namedtuple
 
-import discord.abc
+import discordjspy.abc
 from .utils import snowflake_time, _bytes_to_base64_data, parse_time, valid_icon_size
 from .enums import DefaultAvatar, RelationshipType, UserFlags, HypeSquadHouse
 from .errors import ClientException, InvalidArgument
