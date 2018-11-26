@@ -29,7 +29,7 @@ import functools
 import inspect
 import typing
 
-import discord
+import discordjspy as discord
 
 from .errors import *
 from .cooldowns import Cooldown, BucketType, CooldownMapping
