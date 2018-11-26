@@ -33,7 +33,7 @@ import traceback
 import re
 import os
 
-import discord
+import discordjspy as discord
 
 from .core import GroupMixin, Command
 from .view import StringView
