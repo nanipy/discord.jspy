@@ -73,7 +73,7 @@ class Profile(namedtuple('Profile', 'flags user mutual_guilds connected_accounts
         flags = (UserFlags.hypesquad_bravery, UserFlags.hypesquad_brilliance, UserFlags.hypesquad_balance)
         return [house for house, flag in zip(HypeSquadHouse, flags) if self._has_flag(flag)]
 
-_BaseUser = discord.abc.User
+_BaseUser = discordjspy.abc.User
 
 class BaseUser(_BaseUser):
     __slots__ = ('name', 'id', 'discriminator', 'avatar', 'bot', '_state')
