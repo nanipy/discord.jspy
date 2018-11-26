@@ -27,7 +27,7 @@ DEALINGS IN THE SOFTWARE.
 import time
 import asyncio
 
-import discord.abc
+import discordjspy.abc
 from .permissions import Permissions
 from .enums import ChannelType, try_enum
 from .mixins import Hashable
@@ -41,7 +41,7 @@ async def _single_delete_strategy(messages):
     for m in messages:
         await m.delete()
 
-class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
+class TextChannel(discordjspy.abc.Messageable, discordjspy.abc.GuildChannel, Hashable):
     """Represents a Discord guild text channel.
 
     .. container:: operations
@@ -117,7 +117,7 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
         base.value &= ~denied.value
         return base
 
-    permissions_for.__doc__ = discord.abc.GuildChannel.permissions_for.__doc__
+    permissions_for.__doc__ = discordjspy.abc.GuildChannel.permissions_for.__doc__
 
     @property
     def members(self):
@@ -384,7 +384,7 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
         data = await self._state.http.create_webhook(self.id, name=str(name), avatar=avatar)
         return Webhook.from_state(data, state=self._state)
 
-class VoiceChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hashable):
+class VoiceChannel(discordjspy.abc.Connectable, discordjspy.abc.GuildChannel, Hashable):
     """Represents a Discord guild voice channel.
 
     .. container:: operations
@@ -498,7 +498,7 @@ class VoiceChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hashable):
 
         await self._edit(options, reason=reason)
 
-class CategoryChannel(discord.abc.GuildChannel, Hashable):
+class CategoryChannel(discordjspy.abc.GuildChannel, Hashable):
     """Represents a Discord channel category.
 
     These are useful to group channels to logical compartments.
@@ -611,7 +611,7 @@ class CategoryChannel(discord.abc.GuildChannel, Hashable):
         ret.sort(key=comparator)
         return ret
 
-class DMChannel(discord.abc.Messageable, Hashable):
+class DMChannel(discordjspy.abc.Messageable, Hashable):
     """Represents a Discord direct message channel.
 
     .. container:: operations
@@ -693,7 +693,7 @@ class DMChannel(discord.abc.Messageable, Hashable):
         base.manage_messages = False
         return base
 
-class GroupChannel(discord.abc.Messageable, Hashable):
+class GroupChannel(discordjspy.abc.Messageable, Hashable):
     """Represents a Discord group channel.
 
     .. container:: operations
