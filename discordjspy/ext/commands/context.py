@@ -24,10 +24,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
-import discord.abc
-import discord.utils
+import discordjspy.abc
+import discordjspy.utils
 
-class Context(discord.abc.Messageable):
+class Context(discordjspy.abc.Messageable):
     r"""Represents the context in which a command is being invoked under.
 
     This class contains a lot of meta data to help you understand more about
@@ -197,22 +197,22 @@ class Context(discord.abc.Messageable):
             return None
         return self.command.instance
 
-    @discord.utils.cached_property
+    @discordjspy.utils.cached_property
     def guild(self):
         """Returns the guild associated with this context's command. None if not available."""
         return self.message.guild
 
-    @discord.utils.cached_property
+    @discordjspy.utils.cached_property
     def channel(self):
         """Returns the channel associated with this context's command. Shorthand for :attr:`Message.channel`."""
         return self.message.channel
 
-    @discord.utils.cached_property
+    @discordjspy.utils.cached_property
     def author(self):
         """Returns the author associated with this context's command. Shorthand for :attr:`Message.author`"""
         return self.message.author
 
-    @discord.utils.cached_property
+    @discordjspy.utils.cached_property
     def me(self):
         """Similar to :attr:`Guild.me` except it may return the :class:`ClientUser` in private message contexts."""
         return self.guild.me if self.guild is not None else self.bot.user
