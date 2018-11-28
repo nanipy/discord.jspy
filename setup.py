@@ -38,10 +38,10 @@ packages = ['discordjspy', 'discordjspy.ext.commands']
 
 for dir in os.listdir('discordjspy{}addons'.format(os.sep)):
     if not dir.endswith('.py') and not dir.startswith('__'):
-        packages.append('discordjspy.addons.{}').format(dir)
+        packages.append('discordjspy.addons.{}'.format(dir))
         for dir2 in os.listdir('discordjspy{0}addons{0}{1}'.format(os.sep, dir)):
             if not dir2.endswith('.py') and not dir2.startswith('__'):
-                packages.append('discordjspy.addons.{}.{}').format(dir, dir2)
+                packages.append('discordjspy.addons.{}.{}'.format(dir, dir2))
 
 extras_require = {
     'voice': ['PyNaCl==1.2.1'],
