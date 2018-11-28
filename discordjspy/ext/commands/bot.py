@@ -163,6 +163,7 @@ class BotBase(GroupMixin):
         self.description = inspect.cleandoc(description) if description else ''
         self.pm_help = pm_help
         self.owner_id = options.get('owner_id')
+        self.owners = options.get('owners') or []
         self.command_not_found = options.pop('command_not_found', 'No command called "{}" found.')
         self.command_has_no_subcommands = options.pop('command_has_no_subcommands', 'Command {0.name} has no subcommands.')
 
@@ -350,7 +351,7 @@ class BotBase(GroupMixin):
         """Checks if a :class:`.User` or :class:`.Member` is the owner of
         this bot.
 
-        If an :attr:`owner_id` is not set, it is fetched automatically
+        If the :attr:`owners` or :attr:`owner_id` are not set, it is fetched automatically
         through the use of :meth:`~.Bot.application_info`.
 
         Parameters
@@ -359,6 +360,8 @@ class BotBase(GroupMixin):
             The user to check for.
         """
 
+        if self.owners:
+            return user.id in self.owners
         if self.owner_id is None:
             app = await self.application_info()
             self.owner_id = owner_id = app.owner.id
