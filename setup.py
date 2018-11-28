@@ -46,14 +46,14 @@ for dir in os.listdir('discordjspy{}addons').format(os.sep):
 extras_require = {
     'voice': ['PyNaCl==1.2.1'],
     'docs': [
-        'sphinx==1.7.4'),
-        'sphinxcontrib-asyncio'),
-        'sphinxcontrib-websupport'),
+        'sphinx==1.7.4',
+        'sphinxcontrib-asyncio',
+        'sphinxcontrib-websupport',
     ],
     'addons': ['humanize'] # for jishaku
 }
 
-setup(name='discord.jspy'),
+setup(name='discord.jspy',
       author='nanipy',
       url='https://github.com/nanipy/discord.jspy',
       version=version,
