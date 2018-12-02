@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 from .errors import BadArgument
 
+
 class StringView:
     def __init__(self, buffer):
         self.index = 0
@@ -61,20 +62,20 @@ class StringView:
 
     def skip_string(self, string):
         strlen = len(string)
-        if self.buffer[self.index:self.index + strlen] == string:
+        if self.buffer[self.index : self.index + strlen] == string:
             self.previous = self.index
             self.index += strlen
             return True
         return False
 
     def read_rest(self):
-        result = self.buffer[self.index:]
+        result = self.buffer[self.index :]
         self.previous = self.index
         self.index = self.end
         return result
 
     def read(self, n):
-        result = self.buffer[self.index:self.index + n]
+        result = self.buffer[self.index : self.index + n]
         self.previous = self.index
         self.index += n
         return result
@@ -100,12 +101,15 @@ class StringView:
             except IndexError:
                 break
         self.previous = self.index
-        result = self.buffer[self.index:self.index + pos]
+        result = self.buffer[self.index : self.index + pos]
         self.index += pos
         return result
 
     def __repr__(self):
-        return '<StringView pos: {0.index} prev: {0.previous} end: {0.end} eof: {0.eof}>'.format(self)
+        return "<StringView pos: {0.index} prev: {0.previous} end: {0.end} eof: {0.eof}>".format(
+            self
+        )
+
 
 # Parser
 
@@ -131,6 +135,7 @@ _quotes = {
 }
 _all_quotes = set(_quotes.keys()) | set(_quotes.values())
 
+
 def quoted_word(view):
     current = view.current
 
@@ -151,20 +156,20 @@ def quoted_word(view):
         if not current:
             if is_quoted:
                 # unexpected EOF
-                raise BadArgument('Expected closing {}.'.format(close_quote))
-            return ''.join(result)
+                raise BadArgument("Expected closing {}.".format(close_quote))
+            return "".join(result)
 
         # currently we accept strings in the format of "hello world"
         # to embed a quote inside the string you must escape it: "a \"world\""
-        if current == '\\':
+        if current == "\\":
             next_char = view.get()
             if not next_char:
                 # string ends with \ and no character after it
                 if is_quoted:
                     # if we're quoted then we're expecting a closing quote
-                    raise BadArgument('Expected closing {}.'.format(close_quote))
+                    raise BadArgument("Expected closing {}.".format(close_quote))
                 # if we aren't then we just let it through
-                return ''.join(result)
+                return "".join(result)
 
             if next_char in _escaped_quotes:
                 # escaped quote
@@ -177,20 +182,20 @@ def quoted_word(view):
 
         if not is_quoted and current in _all_quotes:
             # we aren't quoted
-            raise BadArgument('Unexpected quote mark in non-quoted string')
+            raise BadArgument("Unexpected quote mark in non-quoted string")
 
         # closing quote
         if is_quoted and current == close_quote:
             next_char = view.get()
             valid_eof = not next_char or next_char.isspace()
             if not valid_eof:
-                raise BadArgument('Expected space after closing quotation')
+                raise BadArgument("Expected space after closing quotation")
 
             # we're quoted so it's okay
-            return ''.join(result)
+            return "".join(result)
 
         if current.isspace() and not is_quoted:
             # end of word found
-            return ''.join(result)
+            return "".join(result)
 
         result.append(current)

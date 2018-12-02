@@ -40,10 +40,11 @@ from .errors import InvalidArgument
 
 DISCORD_EPOCH = 1420070400000
 
+
 class cached_property:
     def __init__(self, function):
         self.function = function
-        self.__doc__ = getattr(function, '__doc__')
+        self.__doc__ = getattr(function, "__doc__")
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -54,11 +55,12 @@ class cached_property:
 
         return value
 
+
 class CachedSlotProperty:
     def __init__(self, name, function):
         self.name = name
         self.function = function
-        self.__doc__ = getattr(function, '__doc__')
+        self.__doc__ = getattr(function, "__doc__")
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -71,31 +73,42 @@ class CachedSlotProperty:
             setattr(instance, self.name, value)
             return value
 
+
 def cached_slot_property(name):
     def decorator(func):
         return CachedSlotProperty(name, func)
+
     return decorator
+
 
 def parse_time(timestamp):
     if timestamp:
-        return datetime.datetime(*map(int, re_split(r'[^\d]', timestamp.replace('+00:00', ''))))
+        return datetime.datetime(
+            *map(int, re_split(r"[^\d]", timestamp.replace("+00:00", "")))
+        )
     return None
+
 
 def deprecated(instead=None):
     def actual_decorator(func):
         @functools.wraps(func)
         def decorated(*args, **kwargs):
-            warnings.simplefilter('always', DeprecationWarning) # turn off filter
+            warnings.simplefilter("always", DeprecationWarning)  # turn off filter
             if instead:
                 fmt = "{0.__name__} is deprecated, use {1} instead."
             else:
-                fmt = '{0.__name__} is deprecated.'
+                fmt = "{0.__name__} is deprecated."
 
-            warnings.warn(fmt.format(func, instead), stacklevel=3, category=DeprecationWarning)
-            warnings.simplefilter('default', DeprecationWarning) # reset filter
+            warnings.warn(
+                fmt.format(func, instead), stacklevel=3, category=DeprecationWarning
+            )
+            warnings.simplefilter("default", DeprecationWarning)  # reset filter
             return func(*args, **kwargs)
+
         return decorated
+
     return actual_decorator
+
 
 def oauth_url(client_id, permissions=None, guild=None, redirect_uri=None):
     """A helper function that returns the OAuth2 URL for inviting the bot
@@ -113,20 +126,24 @@ def oauth_url(client_id, permissions=None, guild=None, redirect_uri=None):
     redirect_uri : str
         An optional valid redirect URI.
     """
-    url = 'https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'.format(client_id)
+    url = "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot".format(
+        client_id
+    )
     if permissions is not None:
-        url = url + '&permissions=' + str(permissions.value)
+        url = url + "&permissions=" + str(permissions.value)
     if guild is not None:
         url = url + "&guild_id=" + str(guild.id)
     if redirect_uri is not None:
         from urllib.parse import urlencode
-        url = url + "&response_type=code&" + urlencode({'redirect_uri': redirect_uri})
+
+        url = url + "&response_type=code&" + urlencode({"redirect_uri": redirect_uri})
     return url
 
 
 def snowflake_time(id):
     """Returns the creation date in UTC of a discord id."""
     return datetime.datetime.utcfromtimestamp(((id >> 22) + DISCORD_EPOCH) / 1000)
+
 
 def time_snowflake(datetime_obj, high=False):
     """Returns a numeric snowflake pretending to be created at the given date.
@@ -144,7 +161,8 @@ def time_snowflake(datetime_obj, high=False):
     unix_seconds = (datetime_obj - type(datetime_obj)(1970, 1, 1)).total_seconds()
     discord_millis = int(unix_seconds * 1000 - DISCORD_EPOCH)
 
-    return (discord_millis << 22) + (2**22-1 if high else 0)
+    return (discord_millis << 22) + (2 ** 22 - 1 if high else 0)
+
 
 def find(predicate, seq):
     """A helper to return the first element found in the sequence
@@ -173,6 +191,7 @@ def find(predicate, seq):
         if predicate(element):
             return element
     return None
+
 
 def get(iterable, **attrs):
     r"""A helper that returns the first element in the iterable that meets
@@ -220,7 +239,7 @@ def get(iterable, **attrs):
 
     def predicate(elem):
         for attr, val in attrs.items():
-            nested = attr.split('__')
+            nested = attr.split("__")
             obj = elem
             for attribute in nested:
                 obj = getattr(obj, attribute)
@@ -237,6 +256,7 @@ def _unique(iterable):
     adder = seen.add
     return [x for x in iterable if not (x in seen or adder(x))]
 
+
 def _get_as_snowflake(data, key):
     try:
         value = data[key]
@@ -245,31 +265,40 @@ def _get_as_snowflake(data, key):
     else:
         return value and int(value)
 
+
 def _get_mime_type_for_image(data):
-    if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):
-        return 'image/png'
-    elif data.startswith(b'\xFF\xD8') and data.rstrip(b'\0').endswith(b'\xFF\xD9'):
-        return 'image/jpeg'
-    elif data.startswith(b'\x47\x49\x46\x38\x37\x61') or data.startswith(b'\x47\x49\x46\x38\x39\x61'):
-        return 'image/gif'
-    elif data.startswith(b'RIFF') and data[8:12] == b'WEBP':
-        return 'image/webp'
+    if data.startswith(b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"):
+        return "image/png"
+    elif data.startswith(b"\xFF\xD8") and data.rstrip(b"\0").endswith(b"\xFF\xD9"):
+        return "image/jpeg"
+    elif data.startswith(b"\x47\x49\x46\x38\x37\x61") or data.startswith(
+        b"\x47\x49\x46\x38\x39\x61"
+    ):
+        return "image/gif"
+    elif data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        return "image/webp"
     else:
-        raise InvalidArgument('Unsupported image type given')
+        raise InvalidArgument("Unsupported image type given")
+
 
 def _bytes_to_base64_data(data):
-    fmt = 'data:{mime};base64,{data}'
+    fmt = "data:{mime};base64,{data}"
     mime = _get_mime_type_for_image(data)
-    b64 = b64encode(data).decode('ascii')
+    b64 = b64encode(data).decode("ascii")
     return fmt.format(mime=mime, data=b64)
 
+
 def to_json(obj):
-    return json.dumps(obj, separators=(',', ':'), ensure_ascii=True)
+    return json.dumps(obj, separators=(",", ":"), ensure_ascii=True)
+
 
 def _parse_ratelimit_header(request):
-    now = parsedate_to_datetime(request.headers['Date'])
-    reset = datetime.datetime.fromtimestamp(int(request.headers['X-Ratelimit-Reset']), datetime.timezone.utc)
+    now = parsedate_to_datetime(request.headers["Date"])
+    reset = datetime.datetime.fromtimestamp(
+        int(request.headers["X-Ratelimit-Reset"]), datetime.timezone.utc
+    )
     return (reset - now).total_seconds()
+
 
 async def maybe_coroutine(f, *args, **kwargs):
     value = f(*args, **kwargs)
@@ -277,6 +306,7 @@ async def maybe_coroutine(f, *args, **kwargs):
         return await value
     else:
         return value
+
 
 async def async_all(gen, *, check=_isawaitable):
     for elem in gen:
@@ -286,15 +316,18 @@ async def async_all(gen, *, check=_isawaitable):
             return False
     return True
 
+
 async def sane_wait_for(futures, *, timeout, loop):
     _, pending = await asyncio.wait(futures, timeout=timeout, loop=loop)
 
     if len(pending) != 0:
         raise asyncio.TimeoutError()
 
+
 def valid_icon_size(size):
     """Icons must be power of 2 within [16, 2048]."""
     return not size & (size - 1) and size in range(16, 2049)
+
 
 class SnowflakeList(array.array):
     """Internal data storage class to efficiently store a list of snowflakes.
@@ -311,7 +344,7 @@ class SnowflakeList(array.array):
     __slots__ = ()
 
     def __new__(cls, data, *, is_sorted=False):
-        return array.array.__new__(cls, 'Q', data if is_sorted else sorted(data))
+        return array.array.__new__(cls, "Q", data if is_sorted else sorted(data))
 
     def add(self, element):
         i = bisect_left(self, element)

@@ -31,16 +31,31 @@ from jishaku.codeblocks import Codeblock, CodeblockConverter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.models import copy_context_with
 from jishaku.paginators import FilePaginator, PaginatorInterface, WrappedPaginator
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
+from jishaku.repl import (
+    AsyncCodeExecutor,
+    Scope,
+    all_inspections,
+    get_var_dict_from_ctx,
+)
 from jishaku.shell import ShellReader
-from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
-
-__all__ = (
-    "Jishaku",
-    "setup"
+from jishaku.voice import (
+    BasicYouTubeDLSource,
+    connected_check,
+    playing_check,
+    vc_check,
+    youtube_dl,
 )
 
-HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in ("true", "t", "yes", "y", "on", "1")
+__all__ = ("Jishaku", "setup")
+
+HIDE_JISHAKU = os.getenv("JISHAKU_HIDE", "").lower() in (
+    "true",
+    "t",
+    "yes",
+    "y",
+    "on",
+    "1",
+)
 
 
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
@@ -107,18 +122,25 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         All other functionality is within its subcommands.
         """
 
-        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk:
+        if (
+            ctx.invoked_subcommand is not None
+            and ctx.invoked_subcommand is not self.jsk
+        ):
             return
 
         # This only runs when no subcommand has been invoked, so give a brief.
-        await ctx.send(inspect.cleandoc(f"""
+        await ctx.send(
+            inspect.cleandoc(
+                f"""
             Jishaku is active. ({len(self.bot.guilds)} guild(s), {len(self.bot.users)} user(s))
             Module load time: {humanize.naturaltime(self.load_time)}
             {'Using automatic sharding.' if isinstance(self.bot, discord.AutoShardedClient) else
              'Using manual sharding.' if self.bot.shard_count else
              'Not using sharding.'}
             Average websocket latency: {round(self.bot.latency * 1000, 2)}ms
-        """))
+        """
+            )
+        )
 
     @jsk.command(name="hide")
     async def jsk_hide(self, ctx: commands.Context):
@@ -173,8 +195,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         size = os.path.getsize(path)
 
         if size <= 0:
-            return await ctx.send(f"`{path}`: Cowardly refusing to read a file with no size stat"
-                                  f" (it may be empty, endless or inaccessible).")
+            return await ctx.send(
+                f"`{path}`: Cowardly refusing to read a file with no size stat"
+                f" (it may be empty, endless or inaccessible)."
+            )
 
         if size > 50 * (1024 ** 2):
             return await ctx.send(f"`{path}`: Cowardly refusing to read a file >50MB.")
@@ -183,7 +207,9 @@ class Jishaku:  # pylint: disable=too-many-public-methods
             with open(path, "rb") as file:
                 paginator = FilePaginator(file, line_span=line_span, max_size=1985)
         except UnicodeDecodeError:
-            return await ctx.send(f"`{path}`: Couldn't determine the encoding of this file.")
+            return await ctx.send(
+                f"`{path}`: Couldn't determine the encoding of this file."
+            )
         except ValueError as exc:
             return await ctx.send(f"`{path}`: Couldn't read this file, {exc}")
 
@@ -202,8 +228,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         paginator = commands.Paginator(max_size=1985)
 
         for task in self.tasks:
-            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                               f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+            paginator.add_line(
+                f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                f"{task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            )
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         await interface.send_to(ctx)
@@ -229,8 +257,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                 return await ctx.send("Unknown task.")
 
         task.task.cancel()
-        return await ctx.send(f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
-                              f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        return await ctx.send(
+            f"Cancelled task {task.index}: `{task.ctx.command.qualified_name}`,"
+            f" invoked at {task.ctx.message.created_at.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        )
 
     @jsk.command(name="retain")
     async def jsk_retain(self, ctx: commands.Context, *, toggle: bool):
@@ -244,13 +274,17 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
             self.retain = True
             self._scope = Scope()
-            return await ctx.send("Variable retention is ON. Future REPL sessions will retain their scope.")
+            return await ctx.send(
+                "Variable retention is ON. Future REPL sessions will retain their scope."
+            )
 
         if not self.retain:
             return await ctx.send("Variable retention is already set to OFF.")
 
         self.retain = False
-        return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
+        return await ctx.send(
+            "Variable retention is OFF. Future REPL sessions will dispose their scope when done."
+        )
 
     @jsk.command(name="py", aliases=["python"])
     async def jsk_python(self, ctx: commands.Context, *, argument: CodeblockConverter):
@@ -267,7 +301,9 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
-                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                async for result in AsyncCodeExecutor(
+                    argument.content, scope, arg_dict=arg_dict
+                ):
                     if result is None:
                         continue
 
@@ -284,13 +320,17 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
                         if len(result) > 2000:
                             result = result[0:1997] + "..."
-                        elif result.strip() == '':
+                        elif result.strip() == "":
                             result = "\u200b"
 
-                        await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+                        await ctx.send(
+                            result.replace(self.bot.http.token, "[token omitted]")
+                        )
 
     @jsk.command(name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: CodeblockConverter):
+    async def jsk_python_inspect(
+        self, ctx: commands.Context, *, argument: CodeblockConverter
+    ):
         """
         Evaluation of Python code with inspect information.
         """
@@ -304,15 +344,23 @@ class Jishaku:  # pylint: disable=too-many-public-methods
 
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
-                async for result in AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict):
+                async for result in AsyncCodeExecutor(
+                    argument.content, scope, arg_dict=arg_dict
+                ):
                     self.last_result = result
 
-                    header = repr(result).replace("`", "\u200b`").replace(self.bot.http.token, "[token omitted]")
+                    header = (
+                        repr(result)
+                        .replace("`", "\u200b`")
+                        .replace(self.bot.http.token, "[token omitted]")
+                    )
 
                     if len(header) > 485:
                         header = header[0:482] + "..."
 
-                    paginator = WrappedPaginator(prefix=f"```prolog\n=== {header} ===\n", max_size=1985)
+                    paginator = WrappedPaginator(
+                        prefix=f"```prolog\n=== {header} ===\n", max_size=1985
+                    )
 
                     for name, res in all_inspections(result):
                         paginator.add_line(f"{name:16.16} :: {res}")
@@ -350,7 +398,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         Shortcut for 'jsk sh git'. Invokes the system shell.
         """
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content))
+        return await ctx.invoke(
+            self.jsk_shell,
+            argument=Codeblock(argument.language, "git " + argument.content),
+        )
 
     @jsk.command(name="load", aliases=["reload"])
     async def jsk_load(self, ctx: commands.Context, *extensions):
@@ -360,18 +411,26 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         Reports any extensions that failed to load.
         """
 
-        paginator = commands.Paginator(prefix='', suffix='')
+        paginator = commands.Paginator(prefix="", suffix="")
 
         for extension in extensions:
-            load_icon = "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}" \
-                        if extension in self.bot.extensions else "\N{INBOX TRAY}"
+            load_icon = (
+                "\N{CLOCKWISE RIGHTWARDS AND LEFTWARDS OPEN CIRCLE ARROWS}"
+                if extension in self.bot.extensions
+                else "\N{INBOX TRAY}"
+            )
             try:
                 self.bot.unload_extension(extension)
                 self.bot.load_extension(extension)
             except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+                traceback_data = "".join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__, 1)
+                )
 
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+                paginator.add_line(
+                    f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    empty=True,
+                )
             else:
                 paginator.add_line(f"{load_icon} `{extension}`", empty=True)
 
@@ -386,15 +445,20 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         Reports any extensions that failed to unload.
         """
 
-        paginator = commands.Paginator(prefix='', suffix='')
+        paginator = commands.Paginator(prefix="", suffix="")
 
         for extension in extensions:
             try:
                 self.bot.unload_extension(extension)
             except Exception as exc:  # pylint: disable=broad-except
-                traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
+                traceback_data = "".join(
+                    traceback.format_exception(type(exc), exc, exc.__traceback__, 1)
+                )
 
-                paginator.add_line(f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```", empty=True)
+                paginator.add_line(
+                    f"\N{WARNING SIGN} `{extension}`\n```py\n{traceback_data}\n```",
+                    empty=True,
+                )
             else:
                 paginator.add_line(f"\N{OUTBOX TRAY} `{extension}`", empty=True)
 
@@ -411,7 +475,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         """
 
         # if using a subcommand, short out
-        if ctx.invoked_subcommand is not None and ctx.invoked_subcommand is not self.jsk_voice:
+        if (
+            ctx.invoked_subcommand is not None
+            and ctx.invoked_subcommand is not self.jsk_voice
+        ):
             return
 
         # give info about the current voice client if there is one
@@ -420,12 +487,18 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         if not voice or not voice.is_connected():
             return await ctx.send("Not connected.")
 
-        await ctx.send(f"Connected to {voice.channel.name}, "
-                       f"{'paused' if voice.is_paused() else 'playing' if voice.is_playing() else 'idle'}.")
+        await ctx.send(
+            f"Connected to {voice.channel.name}, "
+            f"{'paused' if voice.is_paused() else 'playing' if voice.is_playing() else 'idle'}."
+        )
 
     @jsk_voice.command(name="join", aliases=["connect"])
-    async def jsk_vc_join(self, ctx: commands.Context, *,
-                          destination: typing.Union[discord.VoiceChannel, discord.Member] = None):
+    async def jsk_vc_join(
+        self,
+        ctx: commands.Context,
+        *,
+        destination: typing.Union[discord.VoiceChannel, discord.Member] = None,
+    ):
         """
         Joins a voice channel, or moves to it if already connected.
 
@@ -517,8 +590,10 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         source = ctx.guild.voice_client.source
 
         if not isinstance(source, discord.PCMVolumeTransformer):
-            return await ctx.send("This source doesn't support adjusting volume or "
-                                  "the interface to do so is not exposed.")
+            return await ctx.send(
+                "This source doesn't support adjusting volume or "
+                "the interface to do so is not exposed."
+            )
 
         source.volume = volume
 
@@ -566,15 +641,22 @@ class Jishaku:  # pylint: disable=too-many-public-methods
         await ctx.send(f"Playing in {voice.channel.name}.")
 
     @jsk.command(name="su")
-    async def jsk_su(self, ctx: commands.Context, member: typing.Union[discord.Member, discord.User],
-                     *, command_string: str):
+    async def jsk_su(
+        self,
+        ctx: commands.Context,
+        member: typing.Union[discord.Member, discord.User],
+        *,
+        command_string: str,
+    ):
         """
         Run a command as someone else.
 
         This will try to resolve to a Member, but will use a User if it can't find one.
         """
 
-        alt_ctx = await copy_context_with(ctx, author=member, content=ctx.prefix + command_string)
+        alt_ctx = await copy_context_with(
+            ctx, author=member, content=ctx.prefix + command_string
+        )
 
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
@@ -614,7 +696,9 @@ class Jishaku:  # pylint: disable=too-many-public-methods
                 await alt_ctx.command.invoke(alt_ctx)
 
         end = time.perf_counter()
-        return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
+        return await ctx.send(
+            f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s."
+        )
 
 
 def setup(bot: commands.Bot):

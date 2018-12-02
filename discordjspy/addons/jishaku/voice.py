@@ -30,7 +30,9 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
         raise commands.CheckFailure("voice cannot be used because PyNaCl is not loaded")
 
     if not discordjspy.opus.is_loaded():
-        raise commands.CheckFailure("voice cannot be used because libopus is not loaded")
+        raise commands.CheckFailure(
+            "voice cannot be used because libopus is not loaded"
+        )
 
     return True
 
@@ -56,15 +58,17 @@ async def playing_check(ctx: commands.Context):
     """
 
     if await connected_check(ctx) and not ctx.guild.voice_client.is_playing():
-        raise commands.CheckFailure("The voice client in this guild is not playing anything.")
+        raise commands.CheckFailure(
+            "The voice client in this guild is not playing anything."
+        )
 
     return True
 
 
 BASIC_OPTS = {
-    'format': 'webm[abr>0]/bestaudio/best',
-    'prefer_ffmpeg': True,
-    'quiet': True
+    "format": "webm[abr>0]/bestaudio/best",
+    "prefer_ffmpeg": True,
+    "quiet": True,
 }
 
 
@@ -76,4 +80,4 @@ class BasicYouTubeDLSource(discordjspy.FFmpegPCMAudio):
     def __init__(self, url, download: bool = False):
         ytdl = youtube_dl.YoutubeDL(BASIC_OPTS)
         info = ytdl.extract_info(url, download=download)
-        super().__init__(info['url'])
+        super().__init__(info["url"])

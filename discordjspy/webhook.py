@@ -35,7 +35,8 @@ from . import utils
 from .errors import InvalidArgument, HTTPException, Forbidden, NotFound
 from .user import BaseUser, User
 
-__all__ = ['WebhookAdapter', 'AsyncWebhookAdapter', 'RequestsWebhookAdapter', 'Webhook']
+__all__ = ["WebhookAdapter", "AsyncWebhookAdapter", "RequestsWebhookAdapter", "Webhook"]
+
 
 class WebhookAdapter:
     """Base class for all webhook adapters.
@@ -46,12 +47,14 @@ class WebhookAdapter:
         The webhook that owns this adapter.
     """
 
-    BASE = 'https://discordapp.com/api/v7'
+    BASE = "https://discordapp.com/api/v7"
 
     def _prepare(self, webhook):
         self._webhook_id = webhook.id
         self._webhook_token = webhook.token
-        self._request_url = '{0.BASE}/webhooks/{1}/{2}'.format(self, webhook.id, webhook.token)
+        self._request_url = "{0.BASE}/webhooks/{1}/{2}".format(
+            self, webhook.id, webhook.token
+        )
         self.webhook = webhook
 
     def request(self, verb, url, payload=None, multipart=None):
@@ -77,10 +80,10 @@ class WebhookAdapter:
         raise NotImplementedError()
 
     def delete_webhook(self):
-        return self.request('DELETE', self._request_url)
+        return self.request("DELETE", self._request_url)
 
     def edit_webhook(self, **payload):
-        return self.request('PATCH', self._request_url, payload=payload)
+        return self.request("PATCH", self._request_url, payload=payload)
 
     def handle_execution_response(self, data, *, wait):
         """Transforms the webhook execution response into something
@@ -106,25 +109,21 @@ class WebhookAdapter:
 
     def execute_webhook(self, *, payload, wait=False, file=None, files=None):
         if file is not None:
-            multipart = {
-                'file': file,
-                'payload_json': utils.to_json(payload)
-            }
+            multipart = {"file": file, "payload_json": utils.to_json(payload)}
             data = None
         elif files is not None:
-            multipart = {
-                'payload_json': utils.to_json(payload)
-            }
+            multipart = {"payload_json": utils.to_json(payload)}
             for i, file in enumerate(files, start=1):
-                multipart['file%i' % i] = file
+                multipart["file%i" % i] = file
             data = None
         else:
             data = payload
             multipart = None
 
-        url = '%s?wait=%d' % (self._request_url, wait)
-        maybe_coro = self.request('POST', url, multipart=multipart, payload=data)
+        url = "%s?wait=%d" % (self._request_url, wait)
+        maybe_coro = self.request("POST", url, multipart=multipart, payload=data)
         return self.handle_execution_response(maybe_coro, wait=wait)
+
 
 class AsyncWebhookAdapter(WebhookAdapter):
     """A webhook adapter suited for use with aiohttp.
@@ -147,26 +146,28 @@ class AsyncWebhookAdapter(WebhookAdapter):
         headers = {}
         data = None
         if payload:
-            headers['Content-Type'] = 'application/json'
+            headers["Content-Type"] = "application/json"
             data = utils.to_json(payload)
 
         if multipart:
             data = aiohttp.FormData()
             for key, value in multipart.items():
-                if key.startswith('file'):
-                    data.add_field(key, value[1], filename=value[0], content_type=value[2])
+                if key.startswith("file"):
+                    data.add_field(
+                        key, value[1], filename=value[0], content_type=value[2]
+                    )
                 else:
                     data.add_field(key, value)
 
         for tries in range(5):
             async with self.session.request(verb, url, headers=headers, data=data) as r:
-                data = await r.text(encoding='utf-8')
-                if r.headers['Content-Type'] == 'application/json':
+                data = await r.text(encoding="utf-8")
+                if r.headers["Content-Type"] == "application/json":
                     data = json.loads(data)
 
                 # check if we have rate limit header information
-                remaining = r.headers.get('X-Ratelimit-Remaining')
-                if remaining == '0' and r.status != 429:
+                remaining = r.headers.get("X-Ratelimit-Remaining")
+                if remaining == "0" and r.status != 429:
                     delta = utils._parse_ratelimit_header(r)
                     await asyncio.sleep(delta, loop=self.loop)
 
@@ -175,7 +176,7 @@ class AsyncWebhookAdapter(WebhookAdapter):
 
                 # we are being rate limited
                 if r.status == 429:
-                    retry_after = data['retry_after'] / 1000.0
+                    retry_after = data["retry_after"] / 1000.0
                     await asyncio.sleep(retry_after, loop=self.loop)
                     continue
 
@@ -197,7 +198,9 @@ class AsyncWebhookAdapter(WebhookAdapter):
 
         # transform into Message object
         from .message import Message
+
         return Message(data=data, state=self, channel=self.webhook.channel)
+
 
 class RequestsWebhookAdapter(WebhookAdapter):
     """A webhook adapter suited for use with ``requests``.
@@ -219,6 +222,7 @@ class RequestsWebhookAdapter(WebhookAdapter):
 
     def __init__(self, session=None, *, sleep=True):
         import requests
+
         self.session = session or requests
         self.sleep = sleep
 
@@ -226,26 +230,28 @@ class RequestsWebhookAdapter(WebhookAdapter):
         headers = {}
         data = None
         if payload:
-            headers['Content-Type'] = 'application/json'
+            headers["Content-Type"] = "application/json"
             data = utils.to_json(payload)
 
         if multipart is not None:
-            data = {'payload_json': multipart.pop('payload_json')}
+            data = {"payload_json": multipart.pop("payload_json")}
 
         for tries in range(5):
-            r = self.session.request(verb, url, headers=headers, data=data, files=multipart)
-            r.encoding = 'utf-8'
+            r = self.session.request(
+                verb, url, headers=headers, data=data, files=multipart
+            )
+            r.encoding = "utf-8"
             data = r.text
 
             # compatibility with aiohttp
             r.status = r.status_code
 
-            if r.headers['Content-Type'] == 'application/json':
+            if r.headers["Content-Type"] == "application/json":
                 data = json.loads(data)
 
             # check if we have rate limit header information
-            remaining = r.headers.get('X-Ratelimit-Remaining')
-            if remaining == '0' and r.status != 429 and self.sleep:
+            remaining = r.headers.get("X-Ratelimit-Remaining")
+            if remaining == "0" and r.status != 429 and self.sleep:
                 delta = utils._parse_ratelimit_header(r)
                 time.sleep(delta)
 
@@ -255,7 +261,7 @@ class RequestsWebhookAdapter(WebhookAdapter):
             # we are being rate limited
             if r.status == 429:
                 if self.sleep:
-                    retry_after = data['retry_after'] / 1000.0
+                    retry_after = data["retry_after"] / 1000.0
                     time.sleep(retry_after)
                     continue
                 else:
@@ -278,7 +284,9 @@ class RequestsWebhookAdapter(WebhookAdapter):
 
         # transform into Message object
         from .message import Message
+
         return Message(data=response, state=self, channel=self.webhook.channel)
+
 
 class Webhook:
     """Represents a Discord webhook.
@@ -340,21 +348,30 @@ class Webhook:
         The default avatar of the webhook.
     """
 
-    __slots__ = ('id', 'guild_id', 'channel_id', 'user', 'name', 'avatar',
-                 'token', '_state', '_adapter')
+    __slots__ = (
+        "id",
+        "guild_id",
+        "channel_id",
+        "user",
+        "name",
+        "avatar",
+        "token",
+        "_state",
+        "_adapter",
+    )
 
     def __init__(self, data, *, adapter, state=None):
-        self.id = int(data['id'])
-        self.channel_id = utils._get_as_snowflake(data, 'channel_id')
-        self.guild_id = utils._get_as_snowflake(data, 'guild_id')
-        self.name = data.get('name')
-        self.avatar = data.get('avatar')
-        self.token = data['token']
+        self.id = int(data["id"])
+        self.channel_id = utils._get_as_snowflake(data, "channel_id")
+        self.guild_id = utils._get_as_snowflake(data, "guild_id")
+        self.name = data.get("name")
+        self.avatar = data.get("avatar")
+        self.token = data["token"]
         self._state = state
         self._adapter = adapter
         self._adapter._prepare(self)
 
-        user = data.get('user')
+        user = data.get("user")
         if user is None:
             self.user = None
         elif state is None:
@@ -363,12 +380,12 @@ class Webhook:
             self.user = User(state=state, data=user)
 
     def __repr__(self):
-        return '<Webhook id=%r>' % self.id
+        return "<Webhook id=%r>" % self.id
 
     @property
     def url(self):
         """Returns the webhook's url."""
-        return 'https://discordapp.com/api/webhooks/{}/{}'.format(self.id, self.token)
+        return "https://discordapp.com/api/webhooks/{}/{}".format(self.id, self.token)
 
     @classmethod
     def partial(cls, id, token, *, adapter):
@@ -389,12 +406,9 @@ class Webhook:
         """
 
         if not isinstance(adapter, WebhookAdapter):
-            raise TypeError('adapter must be a subclass of WebhookAdapter')
+            raise TypeError("adapter must be a subclass of WebhookAdapter")
 
-        data = {
-            'id': id,
-            'token': token
-        }
+        data = {"id": id, "token": token}
 
         return cls(data, adapter=adapter)
 
@@ -417,14 +431,19 @@ class Webhook:
             The URL is invalid.
         """
 
-        m = re.search(r'discordapp.com/api/webhooks/(?P<id>[0-9]{17,21})/(?P<token>[A-Za-z0-9\.\-\_]{60,68})', url)
+        m = re.search(
+            r"discordapp.com/api/webhooks/(?P<id>[0-9]{17,21})/(?P<token>[A-Za-z0-9\.\-\_]{60,68})",
+            url,
+        )
         if m is None:
-            raise InvalidArgument('Invalid webhook URL given.')
+            raise InvalidArgument("Invalid webhook URL given.")
         return cls(m.groupdict(), adapter=adapter)
 
     @classmethod
     def from_state(cls, data, state):
-        return cls(data, adapter=AsyncWebhookAdapter(session=state.http._session), state=state)
+        return cls(
+            data, adapter=AsyncWebhookAdapter(session=state.http._session), state=state
+        )
 
     @property
     def guild(self):
@@ -489,17 +508,19 @@ class Webhook:
         """
         if self.avatar is None:
             # Default is always blurple apparently
-            return 'https://cdn.discordapp.com/embed/avatars/0.png'
+            return "https://cdn.discordapp.com/embed/avatars/0.png"
 
         if not utils.valid_icon_size(size):
             raise InvalidArgument("size must be a power of 2 between 16 and 1024")
 
-        format = format or 'png'
+        format = format or "png"
 
-        if format not in ('png', 'jpg', 'jpeg'):
+        if format not in ("png", "jpg", "jpeg"):
             raise InvalidArgument("format must be one of 'png', 'jpg', or 'jpeg'.")
 
-        return 'https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.{1}?size={2}'.format(self, format, size)
+        return "https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.{1}?size={2}".format(
+            self, format, size
+        )
 
     def delete(self):
         """|maybecoro|
@@ -547,29 +568,40 @@ class Webhook:
         payload = {}
 
         try:
-            name = kwargs['name']
+            name = kwargs["name"]
         except KeyError:
             pass
         else:
             if name is not None:
-                payload['name'] = str(name)
+                payload["name"] = str(name)
             else:
-                payload['name'] = None
+                payload["name"] = None
 
         try:
-            avatar = kwargs['avatar']
+            avatar = kwargs["avatar"]
         except KeyError:
             pass
         else:
             if avatar is not None:
-                payload['avatar'] = utils._bytes_to_base64_data(avatar)
+                payload["avatar"] = utils._bytes_to_base64_data(avatar)
             else:
-                payload['avatar'] = None
+                payload["avatar"] = None
 
         return self._adapter.edit_webhook(**payload)
 
-    def send(self, content=None, *, wait=False, username=None, avatar_url=None, tts=False,
-                                    file=None, files=None, embed=None, embeds=None):
+    def send(
+        self,
+        content=None,
+        *,
+        wait=False,
+        username=None,
+        avatar_url=None,
+        tts=False,
+        file=None,
+        files=None,
+        embed=None,
+        embeds=None
+    ):
         """|maybecoro|
 
         Sends a message using the webhook.
@@ -635,38 +667,44 @@ class Webhook:
         payload = {}
 
         if files is not None and file is not None:
-            raise InvalidArgument('Cannot mix file and files keyword arguments.')
+            raise InvalidArgument("Cannot mix file and files keyword arguments.")
         if embeds is not None and embed is not None:
-            raise InvalidArgument('Cannot mix embed and embeds keyword arguments.')
+            raise InvalidArgument("Cannot mix embed and embeds keyword arguments.")
 
         if embeds is not None:
             if len(embeds) > 10:
-                raise InvalidArgument('embeds has a maximum of 10 elements.')
-            payload['embeds'] = [e.to_dict() for e in embeds]
+                raise InvalidArgument("embeds has a maximum of 10 elements.")
+            payload["embeds"] = [e.to_dict() for e in embeds]
 
         if embed is not None:
-            payload['embeds'] = [embed.to_dict()]
+            payload["embeds"] = [embed.to_dict()]
 
         if content is not None:
-            payload['content'] = str(content)
+            payload["content"] = str(content)
 
-        payload['tts'] = tts
+        payload["tts"] = tts
         if avatar_url:
-            payload['avatar_url'] = avatar_url
+            payload["avatar_url"] = avatar_url
         if username:
-            payload['username'] = username
+            payload["username"] = username
 
         if file is not None:
             try:
-                to_pass = (file.filename, file.open_file(), 'application/octet-stream')
-                return self._adapter.execute_webhook(wait=wait, file=to_pass, payload=payload)
+                to_pass = (file.filename, file.open_file(), "application/octet-stream")
+                return self._adapter.execute_webhook(
+                    wait=wait, file=to_pass, payload=payload
+                )
             finally:
                 file.close()
         elif files is not None:
             try:
-                to_pass = [(file.filename, file.open_file(), 'application/octet-stream')
-                           for file in files]
-                return self._adapter.execute_webhook(wait=wait, files=to_pass, payload=payload)
+                to_pass = [
+                    (file.filename, file.open_file(), "application/octet-stream")
+                    for file in files
+                ]
+                return self._adapter.execute_webhook(
+                    wait=wait, files=to_pass, payload=payload
+                )
             finally:
                 for file in files:
                     file.close()

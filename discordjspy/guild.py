@@ -35,7 +35,15 @@ from .permissions import PermissionOverwrite
 from .colour import Colour
 from .errors import InvalidArgument, ClientException
 from .channel import *
-from .enums import VoiceRegion, Status, ChannelType, try_enum, VerificationLevel, ContentFilter, NotificationLevel
+from .enums import (
+    VoiceRegion,
+    Status,
+    ChannelType,
+    try_enum,
+    VerificationLevel,
+    ContentFilter,
+    NotificationLevel,
+)
 from .mixins import Hashable
 from .utils import valid_icon_size
 from .user import User
@@ -45,7 +53,8 @@ from .webhook import Webhook
 
 VALID_ICON_FORMATS = {"jpeg", "jpg", "webp", "png"}
 
-BanEntry = namedtuple('BanEntry', 'reason user')
+BanEntry = namedtuple("BanEntry", "reason user")
+
 
 class Guild(Hashable):
     """Represents a Discord guild.
@@ -118,12 +127,33 @@ class Guild(Hashable):
         The guild's invite splash.
     """
 
-    __slots__ = ('afk_timeout', 'afk_channel', '_members', '_channels', 'icon',
-                 'name', 'id', 'unavailable', 'name', 'region', '_state',
-                 '_default_role', '_roles', '_member_count', '_large',
-                 'owner_id', 'mfa_level', 'emojis', 'features',
-                 'verification_level', 'explicit_content_filter', 'splash',
-                 '_voice_states', '_system_channel_id', 'default_notifications')
+    __slots__ = (
+        "afk_timeout",
+        "afk_channel",
+        "_members",
+        "_channels",
+        "icon",
+        "name",
+        "id",
+        "unavailable",
+        "name",
+        "region",
+        "_state",
+        "_default_role",
+        "_roles",
+        "_member_count",
+        "_large",
+        "owner_id",
+        "mfa_level",
+        "emojis",
+        "features",
+        "verification_level",
+        "explicit_content_filter",
+        "splash",
+        "_voice_states",
+        "_system_channel_id",
+        "default_notifications",
+    )
 
     def __init__(self, *, data, state):
         self._channels = {}
@@ -151,10 +181,10 @@ class Guild(Hashable):
         return self.name
 
     def __repr__(self):
-        return '<Guild id={0.id} name={0.name!r} chunked={0.chunked}>'.format(self)
+        return "<Guild id={0.id} name={0.name!r} chunked={0.chunked}>".format(self)
 
     def _update_voice_state(self, data, channel_id):
-        user_id = int(data['user_id'])
+        user_id = int(data["user_id"])
         channel = self.get_channel(channel_id)
         try:
             # check if we should remove the voice state from cache
@@ -181,7 +211,7 @@ class Guild(Hashable):
         # is equivalent to adding 0. So we cast the position to a bool and
         # increment it.
         for r in self._roles.values():
-            r.position += (not r.is_default())
+            r.position += not r.is_default()
 
         self._roles[role.id] = role
 
@@ -200,67 +230,84 @@ class Guild(Hashable):
     def _from_data(self, guild):
         # according to Stan, this is always available even if the guild is unavailable
         # I don't have this guarantee when someone updates the guild.
-        member_count = guild.get('member_count', None)
+        member_count = guild.get("member_count", None)
         if member_count:
             self._member_count = member_count
 
-        self.name = guild.get('name')
-        self.region = try_enum(VoiceRegion, guild.get('region'))
-        self.verification_level = try_enum(VerificationLevel, guild.get('verification_level'))
-        self.default_notifications = try_enum(NotificationLevel, guild.get('default_message_notifications'))
-        self.explicit_content_filter = try_enum(ContentFilter, guild.get('explicit_content_filter', 0))
-        self.afk_timeout = guild.get('afk_timeout')
-        self.icon = guild.get('icon')
-        self.unavailable = guild.get('unavailable', False)
-        self.id = int(guild['id'])
+        self.name = guild.get("name")
+        self.region = try_enum(VoiceRegion, guild.get("region"))
+        self.verification_level = try_enum(
+            VerificationLevel, guild.get("verification_level")
+        )
+        self.default_notifications = try_enum(
+            NotificationLevel, guild.get("default_message_notifications")
+        )
+        self.explicit_content_filter = try_enum(
+            ContentFilter, guild.get("explicit_content_filter", 0)
+        )
+        self.afk_timeout = guild.get("afk_timeout")
+        self.icon = guild.get("icon")
+        self.unavailable = guild.get("unavailable", False)
+        self.id = int(guild["id"])
         self._roles = {}
-        state = self._state # speed up attribute access
-        for r in guild.get('roles', []):
+        state = self._state  # speed up attribute access
+        for r in guild.get("roles", []):
             role = Role(guild=self, data=r, state=state)
             self._roles[role.id] = role
 
-        self.mfa_level = guild.get('mfa_level')
-        self.emojis = tuple(map(lambda d: state.store_emoji(self, d), guild.get('emojis', [])))
-        self.features = guild.get('features', [])
-        self.splash = guild.get('splash')
-        self._system_channel_id = utils._get_as_snowflake(guild, 'system_channel_id')
+        self.mfa_level = guild.get("mfa_level")
+        self.emojis = tuple(
+            map(lambda d: state.store_emoji(self, d), guild.get("emojis", []))
+        )
+        self.features = guild.get("features", [])
+        self.splash = guild.get("splash")
+        self._system_channel_id = utils._get_as_snowflake(guild, "system_channel_id")
 
-        for mdata in guild.get('members', []):
+        for mdata in guild.get("members", []):
             member = Member(data=mdata, guild=self, state=state)
             self._add_member(member)
 
         self._sync(guild)
         self._large = None if member_count is None else self._member_count >= 250
 
-        self.owner_id = utils._get_as_snowflake(guild, 'owner_id')
-        self.afk_channel = self.get_channel(utils._get_as_snowflake(guild, 'afk_channel_id'))
+        self.owner_id = utils._get_as_snowflake(guild, "owner_id")
+        self.afk_channel = self.get_channel(
+            utils._get_as_snowflake(guild, "afk_channel_id")
+        )
 
-        for obj in guild.get('voice_states', []):
-            self._update_voice_state(obj, int(obj['channel_id']))
+        for obj in guild.get("voice_states", []):
+            self._update_voice_state(obj, int(obj["channel_id"]))
 
     def _sync(self, data):
         try:
-            self._large = data['large']
+            self._large = data["large"]
         except KeyError:
             pass
 
-        for presence in data.get('presences', []):
-            user_id = int(presence['user']['id'])
+        for presence in data.get("presences", []):
+            user_id = int(presence["user"]["id"])
             member = self.get_member(user_id)
             if member is not None:
-                member.status = try_enum(Status, presence['status'])
-                member.activities = tuple(map(create_activity, presence.get('activities', [])))
+                member.status = try_enum(Status, presence["status"])
+                member.activities = tuple(
+                    map(create_activity, presence.get("activities", []))
+                )
 
-        if 'channels' in data:
-            channels = data['channels']
+        if "channels" in data:
+            channels = data["channels"]
             for c in channels:
-                if c['type'] == ChannelType.text.value:
-                    self._add_channel(TextChannel(guild=self, data=c, state=self._state))
-                elif c['type'] == ChannelType.voice.value:
-                    self._add_channel(VoiceChannel(guild=self, data=c, state=self._state))
-                elif c['type'] == ChannelType.category.value:
-                    self._add_channel(CategoryChannel(guild=self, data=c, state=self._state))
-
+                if c["type"] == ChannelType.text.value:
+                    self._add_channel(
+                        TextChannel(guild=self, data=c, state=self._state)
+                    )
+                elif c["type"] == ChannelType.voice.value:
+                    self._add_channel(
+                        VoiceChannel(guild=self, data=c, state=self._state)
+                    )
+                elif c["type"] == ChannelType.category.value:
+                    self._add_channel(
+                        CategoryChannel(guild=self, data=c, state=self._state)
+                    )
 
     @property
     def channels(self):
@@ -352,7 +399,9 @@ class Guild(Hashable):
         as_list = [(_get(k), v) for k, v in grouped.items()]
         as_list.sort(key=key)
         for _, channels in as_list:
-            channels.sort(key=lambda c: (not isinstance(c, TextChannel), c.position, c.id))
+            channels.sort(
+                key=lambda c: (not isinstance(c, TextChannel), c.position, c.id)
+            )
         return as_list
 
     def get_channel(self, channel_id):
@@ -390,7 +439,7 @@ class Guild(Hashable):
         """Returns a :class:`Role` with the given ID. If not found, returns None."""
         return self._roles.get(role_id)
 
-    @utils.cached_slot_property('_default_role')
+    @utils.cached_slot_property("_default_role")
     def default_role(self):
         """Gets the @everyone role that all members have by default."""
         return utils.find(lambda r: r.is_default(), self._roles.values())
@@ -405,7 +454,7 @@ class Guild(Hashable):
         """Returns the URL version of the guild's icon. Returns an empty string if it has no icon."""
         return self.icon_url_as()
 
-    def icon_url_as(self, *, format='webp', size=1024):
+    def icon_url_as(self, *, format="webp", size=1024):
         """Returns a friendly URL version of the guild's icon. Returns an empty string if it has no icon.
 
         The format must be one of 'webp', 'jpeg', 'jpg', or 'png'. The
@@ -434,16 +483,18 @@ class Guild(Hashable):
             raise InvalidArgument("format must be one of {}".format(VALID_ICON_FORMATS))
 
         if self.icon is None:
-            return ''
+            return ""
 
-        return 'https://cdn.discordapp.com/icons/{0.id}/{0.icon}.{1}?size={2}'.format(self, format, size)
+        return "https://cdn.discordapp.com/icons/{0.id}/{0.icon}.{1}?size={2}".format(
+            self, format, size
+        )
 
     @property
     def splash_url(self):
         """Returns the URL version of the guild's invite splash. Returns an empty string if it has no splash."""
         return self.splash_url_as()
 
-    def splash_url_as(self, *, format='webp', size=2048):
+    def splash_url_as(self, *, format="webp", size=2048):
         """Returns a friendly URL version of the guild's invite splash. Returns an empty string if it has no splash.
 
         The format must be one of 'webp', 'jpeg', 'jpg', or 'png'. The
@@ -472,9 +523,11 @@ class Guild(Hashable):
             raise InvalidArgument("format must be one of {}".format(VALID_ICON_FORMATS))
 
         if self.splash is None:
-            return ''
+            return ""
 
-        return 'https://cdn.discordapp.com/splashes/{0.id}/{0.splash}.{1}?size={2}'.format(self, format, size)
+        return "https://cdn.discordapp.com/splashes/{0.id}/{0.splash}.{1}?size={2}".format(
+            self, format, size
+        )
 
     @property
     def member_count(self):
@@ -491,7 +544,7 @@ class Guild(Hashable):
         If this value returns ``False``, then you should request for
         offline members.
         """
-        count = getattr(self, '_member_count', None)
+        count = getattr(self, "_member_count", None)
         if count is None:
             return False
         return count == len(self._members)
@@ -538,7 +591,7 @@ class Guild(Hashable):
 
         result = None
         members = self.members
-        if len(name) > 5 and name[-5] == '#':
+        if len(name) > 5 and name[-5] == "#":
             # The 5 length is checking to see if #0000 is in the string,
             # as a#0000 has a length of 6, the minimum for a potential
             # discriminator lookup.
@@ -546,7 +599,9 @@ class Guild(Hashable):
 
             # do the actual lookup and return if found
             # if it isn't found then we'll do a full name lookup below.
-            result = utils.get(members, name=name[:-5], discriminator=potential_discriminator)
+            result = utils.get(
+                members, name=name[:-5], discriminator=potential_discriminator
+            )
             if result is not None:
                 return result
 
@@ -555,36 +610,46 @@ class Guild(Hashable):
 
         return utils.find(pred, members)
 
-    def _create_channel(self, name, overwrites, channel_type, category=None, reason=None):
+    def _create_channel(
+        self, name, overwrites, channel_type, category=None, reason=None
+    ):
         if overwrites is None:
             overwrites = {}
         elif not isinstance(overwrites, dict):
-            raise InvalidArgument('overwrites parameter expects a dict.')
+            raise InvalidArgument("overwrites parameter expects a dict.")
 
         perms = []
         for target, perm in overwrites.items():
             if not isinstance(perm, PermissionOverwrite):
-                raise InvalidArgument('Expected PermissionOverwrite received {0.__name__}'.format(type(perm)))
+                raise InvalidArgument(
+                    "Expected PermissionOverwrite received {0.__name__}".format(
+                        type(perm)
+                    )
+                )
 
             allow, deny = perm.pair()
-            payload = {
-                'allow': allow.value,
-                'deny': deny.value,
-                'id': target.id
-            }
+            payload = {"allow": allow.value, "deny": deny.value, "id": target.id}
 
             if isinstance(target, Role):
-                payload['type'] = 'role'
+                payload["type"] = "role"
             else:
-                payload['type'] = 'member'
+                payload["type"] = "member"
 
             perms.append(payload)
 
         parent_id = category.id if category else None
-        return self._state.http.create_channel(self.id, name, channel_type.value, parent_id=parent_id,
-                                               permission_overwrites=perms, reason=reason)
+        return self._state.http.create_channel(
+            self.id,
+            name,
+            channel_type.value,
+            parent_id=parent_id,
+            permission_overwrites=perms,
+            reason=reason,
+        )
 
-    async def create_text_channel(self, name, *, overwrites=None, category=None, reason=None):
+    async def create_text_channel(
+        self, name, *, overwrites=None, category=None, reason=None
+    ):
         """|coro|
 
         Creates a :class:`TextChannel` for the guild.
@@ -646,19 +711,25 @@ class Guild(Hashable):
         :class:`TextChannel`
             The channel that was just created.
         """
-        data = await self._create_channel(name, overwrites, ChannelType.text, category, reason=reason)
+        data = await self._create_channel(
+            name, overwrites, ChannelType.text, category, reason=reason
+        )
         channel = TextChannel(state=self._state, guild=self, data=data)
 
         # temporarily add to the cache
         self._channels[channel.id] = channel
         return channel
 
-    async def create_voice_channel(self, name, *, overwrites=None, category=None, reason=None):
+    async def create_voice_channel(
+        self, name, *, overwrites=None, category=None, reason=None
+    ):
         """|coro|
 
         Same as :meth:`create_text_channel` except makes a :class:`VoiceChannel` instead.
         """
-        data = await self._create_channel(name, overwrites, ChannelType.voice, category, reason=reason)
+        data = await self._create_channel(
+            name, overwrites, ChannelType.voice, category, reason=reason
+        )
         channel = VoiceChannel(state=self._state, guild=self, data=data)
 
         # temporarily add to the cache
@@ -675,7 +746,9 @@ class Guild(Hashable):
             The ``category`` parameter is not supported in this function since categories
             cannot have categories.
         """
-        data = await self._create_channel(name, overwrites, ChannelType.category, reason=reason)
+        data = await self._create_channel(
+            name, overwrites, ChannelType.category, reason=reason
+        )
         channel = CategoryChannel(state=self._state, guild=self, data=data)
 
         # temporarily add to the cache
@@ -771,7 +844,7 @@ class Guild(Hashable):
 
         http = self._state.http
         try:
-            icon_bytes = fields['icon']
+            icon_bytes = fields["icon"]
         except KeyError:
             icon = self.icon
         else:
@@ -781,14 +854,14 @@ class Guild(Hashable):
                 icon = None
 
         try:
-            vanity_code = fields['vanity_code']
+            vanity_code = fields["vanity_code"]
         except KeyError:
             pass
         else:
             await http.change_vanity_code(self.id, vanity_code, reason=reason)
 
         try:
-            splash_bytes = fields['splash']
+            splash_bytes = fields["splash"]
         except KeyError:
             splash = self.splash
         else:
@@ -797,50 +870,54 @@ class Guild(Hashable):
             else:
                 splash = None
 
-        fields['icon'] = icon
-        fields['splash'] = splash
+        fields["icon"] = icon
+        fields["splash"] = splash
 
         try:
-            default_message_notifications = int(fields.pop('default_notifications'))
+            default_message_notifications = int(fields.pop("default_notifications"))
         except (TypeError, KeyError):
             pass
         else:
-            fields['default_message_notifications'] = default_message_notifications
+            fields["default_message_notifications"] = default_message_notifications
 
         try:
-            afk_channel = fields.pop('afk_channel')
+            afk_channel = fields.pop("afk_channel")
         except KeyError:
             pass
         else:
             if afk_channel is None:
-                fields['afk_channel_id'] = afk_channel
+                fields["afk_channel_id"] = afk_channel
             else:
-                fields['afk_channel_id'] = afk_channel.id
+                fields["afk_channel_id"] = afk_channel.id
 
         try:
-            system_channel = fields.pop('system_channel')
+            system_channel = fields.pop("system_channel")
         except KeyError:
             pass
         else:
             if system_channel is None:
-                fields['system_channel_id'] = system_channel
+                fields["system_channel_id"] = system_channel
             else:
-                fields['system_channel_id'] = system_channel.id
+                fields["system_channel_id"] = system_channel.id
 
-        if 'owner' in fields:
+        if "owner" in fields:
             if self.owner != self.me:
-                raise InvalidArgument('To transfer ownership you must be the owner of the guild.')
+                raise InvalidArgument(
+                    "To transfer ownership you must be the owner of the guild."
+                )
 
-            fields['owner_id'] = fields['owner'].id
+            fields["owner_id"] = fields["owner"].id
 
-        if 'region' in fields:
-            fields['region'] = str(fields['region'])
+        if "region" in fields:
+            fields["region"] = str(fields["region"])
 
-        level = fields.get('verification_level', self.verification_level)
+        level = fields.get("verification_level", self.verification_level)
         if not isinstance(level, VerificationLevel):
-            raise InvalidArgument('verification_level field must of type VerificationLevel')
+            raise InvalidArgument(
+                "verification_level field must of type VerificationLevel"
+            )
 
-        fields['verification_level'] = level.value
+        fields["verification_level"] = level.value
 
         await http.edit_guild(self.id, reason=reason, **fields)
 
@@ -875,8 +952,7 @@ class Guild(Hashable):
         """
         data = await self._state.http.get_ban(user.id, self.id)
         return BanEntry(
-            user=User(state=self._state, data=data['user']),
-            reason=data['reason']
+            user=User(state=self._state, data=data["user"]), reason=data["reason"]
         )
 
     async def bans(self):
@@ -906,9 +982,10 @@ class Guild(Hashable):
         """
 
         data = await self._state.http.get_bans(self.id)
-        return [BanEntry(user=User(state=self._state, data=e['user']),
-                         reason=e['reason'])
-                for e in data]
+        return [
+            BanEntry(user=User(state=self._state, data=e["user"]), reason=e["reason"])
+            for e in data
+        ]
 
     async def prune_members(self, *, days, reason=None):
         """|coro|
@@ -947,10 +1024,14 @@ class Guild(Hashable):
         """
 
         if not isinstance(days, int):
-            raise InvalidArgument('Expected int for ``days``, received {0.__class__.__name__} instead.'.format(days))
+            raise InvalidArgument(
+                "Expected int for ``days``, received {0.__class__.__name__} instead.".format(
+                    days
+                )
+            )
 
         data = await self._state.http.prune_members(self.id, days, reason=reason)
-        return data['pruned']
+        return data["pruned"]
 
     async def webhooks(self):
         """|coro|
@@ -1001,10 +1082,14 @@ class Guild(Hashable):
         """
 
         if not isinstance(days, int):
-            raise InvalidArgument('Expected int for ``days``, received {0.__class__.__name__} instead.'.format(days))
+            raise InvalidArgument(
+                "Expected int for ``days``, received {0.__class__.__name__} instead.".format(
+                    days
+                )
+            )
 
         data = await self._state.http.estimate_pruned_members(self.id, days)
-        return data['pruned']
+        return data["pruned"]
 
     async def invites(self):
         """|coro|
@@ -1030,9 +1115,9 @@ class Guild(Hashable):
         data = await self._state.http.invites_from(self.id)
         result = []
         for invite in data:
-            channel = self.get_channel(int(invite['channel']['id']))
-            invite['channel'] = channel
-            invite['guild'] = self
+            channel = self.get_channel(int(invite["channel"]["id"]))
+            invite["channel"] = channel
+            invite["guild"] = self
             result.append(Invite(state=self._state, data=invite))
 
         return result
@@ -1076,7 +1161,9 @@ class Guild(Hashable):
         img = utils._bytes_to_base64_data(image)
         if roles:
             roles = [role.id for role in roles]
-        data = await self._state.http.create_custom_emoji(self.id, name, img, roles=roles, reason=reason)
+        data = await self._state.http.create_custom_emoji(
+            self.id, name, img, roles=roles, reason=reason
+        )
         return self._state.store_emoji(self, data)
 
     async def create_role(self, *, reason=None, **fields):
@@ -1123,23 +1210,23 @@ class Guild(Hashable):
         """
 
         try:
-            perms = fields.pop('permissions')
+            perms = fields.pop("permissions")
         except KeyError:
-            fields['permissions'] = 0
+            fields["permissions"] = 0
         else:
-            fields['permissions'] = perms.value
+            fields["permissions"] = perms.value
 
         try:
-            colour = fields.pop('colour')
+            colour = fields.pop("colour")
         except KeyError:
-            colour = fields.get('color', Colour.default())
+            colour = fields.get("color", Colour.default())
         finally:
-            fields['color'] = colour.value
+            fields["color"] = colour.value
 
-        valid_keys = ('name', 'permissions', 'color', 'hoist', 'mentionable')
+        valid_keys = ("name", "permissions", "color", "hoist", "mentionable")
         for key in fields:
             if key not in valid_keys:
-                raise InvalidArgument('%r is not a valid field.' % key)
+                raise InvalidArgument("%r is not a valid field." % key)
 
         data = await self._state.http.create_role(self.id, reason=reason, **fields)
         role = Role(guild=self, data=data, state=self._state)
@@ -1257,14 +1344,14 @@ class Guild(Hashable):
 
         # get the vanity URL channel since default channels aren't
         # reliable or a thing anymore
-        data = await self._state.http.get_invite(payload['code'])
+        data = await self._state.http.get_invite(payload["code"])
 
-        payload['guild'] = self
-        payload['channel'] = self.get_channel(int(data['channel']['id']))
-        payload['revoked'] = False
-        payload['temporary'] = False
-        payload['max_uses'] = 0
-        payload['max_age'] = 0
+        payload["guild"] = self
+        payload["channel"] = self.get_channel(int(data["channel"]["id"]))
+        payload["revoked"] = False
+        payload["temporary"] = False
+        payload["max_uses"] = 0
+        payload["max_age"] = 0
         return Invite(state=self._state, data=payload)
 
     def ack(self):
@@ -1284,10 +1371,19 @@ class Guild(Hashable):
 
         state = self._state
         if state.is_bot:
-            raise ClientException('Must not be a bot account to ack messages.')
+            raise ClientException("Must not be a bot account to ack messages.")
         return state.http.ack_guild(self.id)
 
-    def audit_logs(self, *, limit=100, before=None, after=None, reverse=None, user=None, action=None):
+    def audit_logs(
+        self,
+        *,
+        limit=100,
+        before=None,
+        after=None,
+        reverse=None,
+        user=None,
+        action=None
+    ):
         """Return an :class:`AsyncIterator` that enables receiving the guild's audit logs.
 
         You must have the :attr:`~Permissions.view_audit_log` permission to use this.
@@ -1348,5 +1444,12 @@ class Guild(Hashable):
         if action:
             action = action.value
 
-        return AuditLogIterator(self, before=before, after=after, limit=limit,
-                                reverse=reverse, user_id=user, action_type=action)
+        return AuditLogIterator(
+            self,
+            before=before,
+            after=after,
+            limit=limit,
+            reverse=reverse,
+            user_id=user,
+            action_type=action,
+        )

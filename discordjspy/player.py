@@ -36,7 +36,8 @@ from .opus import Encoder as OpusEncoder
 
 log = logging.getLogger(__name__)
 
-__all__ = ['AudioSource', 'PCMAudio', 'FFmpegPCMAudio', 'PCMVolumeTransformer']
+__all__ = ["AudioSource", "PCMAudio", "FFmpegPCMAudio", "PCMVolumeTransformer"]
+
 
 class AudioSource:
     """Represents an audio stream.
@@ -87,6 +88,7 @@ class AudioSource:
     def __del__(self):
         self.cleanup()
 
+
 class PCMAudio(AudioSource):
     """Represents raw 16-bit 48KHz stereo PCM audio source.
 
@@ -95,14 +97,16 @@ class PCMAudio(AudioSource):
     stream: file-like object
         A file-like object that reads byte data representing raw PCM.
     """
+
     def __init__(self, stream):
         self.stream = stream
 
     def read(self):
         ret = self.stream.read(OpusEncoder.FRAME_SIZE)
         if len(ret) != OpusEncoder.FRAME_SIZE:
-            return b''
+            return b""
         return ret
+
 
 class FFmpegPCMAudio(AudioSource):
     """An audio source from FFmpeg (or AVConv).
@@ -139,7 +143,16 @@ class FFmpegPCMAudio(AudioSource):
         The subprocess failed to be created.
     """
 
-    def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
+    def __init__(
+        self,
+        source,
+        *,
+        executable="ffmpeg",
+        pipe=False,
+        stderr=None,
+        before_options=None,
+        options=None
+    ):
         stdin = None if not pipe else source
 
         args = [executable]
@@ -147,28 +160,32 @@ class FFmpegPCMAudio(AudioSource):
         if isinstance(before_options, str):
             args.extend(shlex.split(before_options))
 
-        args.append('-i')
-        args.append('-' if pipe else source)
-        args.extend(('-f', 's16le', '-ar', '48000', '-ac', '2', '-loglevel', 'warning'))
+        args.append("-i")
+        args.append("-" if pipe else source)
+        args.extend(("-f", "s16le", "-ar", "48000", "-ac", "2", "-loglevel", "warning"))
 
         if isinstance(options, str):
             args.extend(shlex.split(options))
 
-        args.append('pipe:1')
+        args.append("pipe:1")
 
         self._process = None
         try:
-            self._process = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=stderr)
+            self._process = subprocess.Popen(
+                args, stdin=stdin, stdout=subprocess.PIPE, stderr=stderr
+            )
             self._stdout = self._process.stdout
         except FileNotFoundError:
-            raise ClientException(executable + ' was not found.') from None
+            raise ClientException(executable + " was not found.") from None
         except subprocess.SubprocessError as exc:
-            raise ClientException('Popen failed: {0.__class__.__name__}: {0}'.format(exc)) from exc
+            raise ClientException(
+                "Popen failed: {0.__class__.__name__}: {0}".format(exc)
+            ) from exc
 
     def read(self):
         ret = self._stdout.read(OpusEncoder.FRAME_SIZE)
         if len(ret) != OpusEncoder.FRAME_SIZE:
-            return b''
+            return b""
         return ret
 
     def cleanup(self):
@@ -176,16 +193,28 @@ class FFmpegPCMAudio(AudioSource):
         if proc is None:
             return
 
-        log.info('Preparing to terminate ffmpeg process %s.', proc.pid)
+        log.info("Preparing to terminate ffmpeg process %s.", proc.pid)
         proc.kill()
         if proc.poll() is None:
-            log.info('ffmpeg process %s has not terminated. Waiting to terminate...', proc.pid)
+            log.info(
+                "ffmpeg process %s has not terminated. Waiting to terminate...",
+                proc.pid,
+            )
             proc.communicate()
-            log.info('ffmpeg process %s should have terminated with a return code of %s.', proc.pid, proc.returncode)
+            log.info(
+                "ffmpeg process %s should have terminated with a return code of %s.",
+                proc.pid,
+                proc.returncode,
+            )
         else:
-            log.info('ffmpeg process %s successfully terminated with return code of %s.', proc.pid, proc.returncode)
+            log.info(
+                "ffmpeg process %s successfully terminated with return code of %s.",
+                proc.pid,
+                proc.returncode,
+            )
 
         self._process = None
+
 
 class PCMVolumeTransformer(AudioSource):
     """Transforms a previous :class:`AudioSource` to have volume controls.
@@ -211,10 +240,12 @@ class PCMVolumeTransformer(AudioSource):
 
     def __init__(self, original, volume=1.0):
         if not isinstance(original, AudioSource):
-            raise TypeError('expected AudioSource not {0.__class__.__name__}.'.format(original))
+            raise TypeError(
+                "expected AudioSource not {0.__class__.__name__}.".format(original)
+            )
 
         if original.is_opus():
-            raise ClientException('AudioSource must not be Opus encoded.')
+            raise ClientException("AudioSource must not be Opus encoded.")
 
         self.original = original
         self.volume = volume
@@ -235,6 +266,7 @@ class PCMVolumeTransformer(AudioSource):
         ret = self.original.read()
         return audioop.mul(ret, 2, min(self._volume, 2.0))
 
+
 class AudioPlayer(threading.Thread):
     DELAY = OpusEncoder.FRAME_LENGTH / 1000.0
 
@@ -247,7 +279,7 @@ class AudioPlayer(threading.Thread):
 
         self._end = threading.Event()
         self._resumed = threading.Event()
-        self._resumed.set() # we are not paused
+        self._resumed.set()  # we are not paused
         self._current_error = None
         self._connected = client._connected
         self._lock = threading.Lock()
@@ -304,7 +336,7 @@ class AudioPlayer(threading.Thread):
             try:
                 self.after(self._current_error)
             except Exception:
-                log.exception('Calling the after function failed.')
+                log.exception("Calling the after function failed.")
 
     def stop(self):
         self._end.set()

@@ -12,11 +12,11 @@ A clone of discord.py using JavaScript flavours.
 
 """
 
-__title__ = 'discordjspy'
-__author__ = 'nanipy'
-__license__ = 'MIT'
-__copyright__ = 'Copyright 2018 nanipy\nCopyright 2015-2017 Rapptz'
-__version__ = '1.0.0a'
+__title__ = "discordjspy"
+__author__ = "nanipy"
+__license__ = "MIT"
+__copyright__ = "Copyright 2018 nanipy\nCopyright 2015-2017 Rapptz"
+__version__ = "1.0.0a"
 
 from collections import namedtuple
 import logging
@@ -49,15 +49,17 @@ from .voice_client import VoiceClient
 from .audit_logs import AuditLogChanges, AuditLogEntry, AuditLogDiff
 from .raw_models import *
 
-VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
+VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
 
-version_info = VersionInfo(major=1, minor=0, micro=0, releaselevel='alpha', serial=0)
+version_info = VersionInfo(major=1, minor=0, micro=0, releaselevel="alpha", serial=0)
 
 try:
     from logging import NullHandler
 except ImportError:
+
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
+
 
 logging.getLogger(__name__).addHandler(NullHandler())

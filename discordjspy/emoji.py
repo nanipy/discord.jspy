@@ -29,7 +29,8 @@ from collections import namedtuple
 from . import utils
 from .mixins import Hashable
 
-class PartialEmoji(namedtuple('PartialEmoji', 'animated name id')):
+
+class PartialEmoji(namedtuple("PartialEmoji", "animated name id")):
     """Represents a "partial" emoji.
 
     This model will be given in two scenarios:
@@ -72,8 +73,8 @@ class PartialEmoji(namedtuple('PartialEmoji', 'animated name id')):
         if self.id is None:
             return self.name
         if self.animated:
-            return '<a:%s:%s>' % (self.name, self.id)
-        return '<:%s:%s>' % (self.name, self.id)
+            return "<a:%s:%s>" % (self.name, self.id)
+        return "<:%s:%s>" % (self.name, self.id)
 
     def is_custom_emoji(self):
         """Checks if this is a custom non-Unicode emoji."""
@@ -86,7 +87,7 @@ class PartialEmoji(namedtuple('PartialEmoji', 'animated name id')):
     def _as_reaction(self):
         if self.id is None:
             return self.name
-        return '%s:%s' % (self.name, self.id)
+        return "%s:%s" % (self.name, self.id)
 
     @property
     def url(self):
@@ -94,8 +95,9 @@ class PartialEmoji(namedtuple('PartialEmoji', 'animated name id')):
         if self.is_unicode_emoji():
             return None
 
-        _format = 'gif' if self.animated else 'png'
+        _format = "gif" if self.animated else "png"
         return "https://cdn.discordapp.com/emojis/{0.id}.{1}".format(self, _format)
+
 
 class Emoji(Hashable):
     """Represents a custom emoji.
@@ -141,7 +143,17 @@ class Emoji(Hashable):
     guild_id: :class:`int`
         The guild ID the emoji belongs to.
     """
-    __slots__ = ('require_colons', 'animated', 'managed', 'id', 'name', '_roles', 'guild_id', '_state')
+
+    __slots__ = (
+        "require_colons",
+        "animated",
+        "managed",
+        "id",
+        "name",
+        "_roles",
+        "guild_id",
+        "_state",
+    )
 
     def __init__(self, *, guild, state, data):
         self.guild_id = guild.id
@@ -149,16 +161,16 @@ class Emoji(Hashable):
         self._from_data(data)
 
     def _from_data(self, emoji):
-        self.require_colons = emoji['require_colons']
-        self.managed = emoji['managed']
-        self.id = int(emoji['id'])
-        self.name = emoji['name']
-        self.animated = emoji.get('animated', False)
-        self._roles = utils.SnowflakeList(map(int, emoji.get('roles', [])))
+        self.require_colons = emoji["require_colons"]
+        self.managed = emoji["managed"]
+        self.id = int(emoji["id"])
+        self.name = emoji["name"]
+        self.animated = emoji.get("animated", False)
+        self._roles = utils.SnowflakeList(map(int, emoji.get("roles", [])))
 
     def _iterator(self):
         for attr in self.__slots__:
-            if attr[0] != '_':
+            if attr[0] != "_":
                 value = getattr(self, attr, None)
                 if value is not None:
                     yield (attr, value)
@@ -168,11 +180,11 @@ class Emoji(Hashable):
 
     def __str__(self):
         if self.animated:
-            return '<a:{0.name}:{0.id}>'.format(self)
+            return "<a:{0.name}:{0.id}>".format(self)
         return "<:{0.name}:{0.id}>".format(self)
 
     def __repr__(self):
-        return '<Emoji id={0.id} name={0.name!r}>'.format(self)
+        return "<Emoji id={0.id} name={0.name!r}>".format(self)
 
     @property
     def created_at(self):
@@ -182,7 +194,7 @@ class Emoji(Hashable):
     @property
     def url(self):
         """Returns a URL version of the emoji."""
-        _format = 'gif' if self.animated else 'png'
+        _format = "gif" if self.animated else "png"
         return "https://cdn.discordapp.com/emojis/{0.id}.{1}".format(self, _format)
 
     @property
@@ -223,7 +235,9 @@ class Emoji(Hashable):
             An error occurred deleting the emoji.
         """
 
-        await self._state.http.delete_custom_emoji(self.guild.id, self.id, reason=reason)
+        await self._state.http.delete_custom_emoji(
+            self.guild.id, self.id, reason=reason
+        )
 
     async def edit(self, *, name, roles=None, reason=None):
         r"""|coro|
@@ -252,4 +266,6 @@ class Emoji(Hashable):
 
         if roles:
             roles = [role.id for role in roles]
-        await self._state.http.edit_custom_emoji(self.guild.id, self.id, name=name, roles=roles, reason=reason)
+        await self._state.http.edit_custom_emoji(
+            self.guild.id, self.id, name=name, roles=roles, reason=reason
+        )

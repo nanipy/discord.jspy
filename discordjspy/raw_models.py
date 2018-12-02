@@ -24,6 +24,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+
 class RawMessageDeleteEvent:
     """Represents the event payload for a :func:`on_raw_message_delete` event.
 
@@ -37,16 +38,17 @@ class RawMessageDeleteEvent:
         The message ID that got deleted.
     """
 
-    __slots__ = ('message_id', 'channel_id', 'guild_id')
+    __slots__ = ("message_id", "channel_id", "guild_id")
 
     def __init__(self, data):
-        self.message_id = int(data['id'])
-        self.channel_id = int(data['channel_id'])
+        self.message_id = int(data["id"])
+        self.channel_id = int(data["channel_id"])
 
         try:
-            self.guild_id = int(data['guild_id'])
+            self.guild_id = int(data["guild_id"])
         except KeyError:
             self.guild_id = None
+
 
 class RawBulkMessageDeleteEvent:
     """Represents the event payload for a :func:`on_raw_bulk_message_delete` event.
@@ -61,16 +63,17 @@ class RawBulkMessageDeleteEvent:
         The guild ID where the message got deleted, if applicable.
     """
 
-    __slots__ = ('message_ids', 'channel_id', 'guild_id')
+    __slots__ = ("message_ids", "channel_id", "guild_id")
 
     def __init__(self, data):
-        self.message_ids = {int(x) for x in data.get('ids', [])}
-        self.channel_id = int(data['channel_id'])
+        self.message_ids = {int(x) for x in data.get("ids", [])}
+        self.channel_id = int(data["channel_id"])
 
         try:
-            self.guild_id = int(data['guild_id'])
+            self.guild_id = int(data["guild_id"])
         except KeyError:
             self.guild_id = None
+
 
 class RawMessageUpdateEvent:
     """Represents the payload for a :func:`on_raw_message_edit` event.
@@ -84,11 +87,12 @@ class RawMessageUpdateEvent:
         `gateway <https://discordapp.com/developers/docs/topics/gateway#message-update>`_
     """
 
-    __slots__ = ('message_id', 'data')
+    __slots__ = ("message_id", "data")
 
     def __init__(self, data):
-        self.message_id = int(data['id'])
+        self.message_id = int(data["id"])
         self.data = data
+
 
 class RawReactionActionEvent:
     """Represents the payload for a :func:`on_raw_reaction_add` or
@@ -108,18 +112,19 @@ class RawReactionActionEvent:
         The custom or unicode emoji being used.
     """
 
-    __slots__ = ('message_id', 'user_id', 'channel_id', 'guild_id', 'emoji')
+    __slots__ = ("message_id", "user_id", "channel_id", "guild_id", "emoji")
 
     def __init__(self, data, emoji):
-        self.message_id = int(data['message_id'])
-        self.channel_id = int(data['channel_id'])
-        self.user_id = int(data['user_id'])
+        self.message_id = int(data["message_id"])
+        self.channel_id = int(data["channel_id"])
+        self.user_id = int(data["user_id"])
         self.emoji = emoji
 
         try:
-            self.guild_id = int(data['guild_id'])
+            self.guild_id = int(data["guild_id"])
         except KeyError:
             self.guild_id = None
+
 
 class RawReactionClearEvent:
     """Represents the payload for a :func:`on_raw_reaction_clear` event.
@@ -134,13 +139,13 @@ class RawReactionClearEvent:
         The guild ID where the reactions got cleared.
     """
 
-    __slots__ = ('message_id', 'channel_id', 'guild_id')
+    __slots__ = ("message_id", "channel_id", "guild_id")
 
     def __init__(self, data):
-        self.message_id = int(data['message_id'])
-        self.channel_id = int(data['channel_id'])
+        self.message_id = int(data["message_id"])
+        self.channel_id = int(data["channel_id"])
 
         try:
-            self.guild_id = int(data['guild_id'])
+            self.guild_id = int(data["guild_id"])
         except KeyError:
             self.guild_id = None

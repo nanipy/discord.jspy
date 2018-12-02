@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 import os.path
 
+
 class File:
     """A parameter object used for :meth:`abc.Messageable.send`
     for sending file objects.
@@ -50,7 +51,7 @@ class File:
         a string then the ``filename`` will default to the string given.
     """
 
-    __slots__ = ('fp', 'filename', '_true_fp')
+    __slots__ = ("fp", "filename", "_true_fp")
 
     def __init__(self, fp, filename=None):
         self.fp = fp
@@ -60,14 +61,14 @@ class File:
             if isinstance(fp, str):
                 _, self.filename = os.path.split(fp)
             else:
-                self.filename = getattr(fp, 'name', None)
+                self.filename = getattr(fp, "name", None)
         else:
             self.filename = filename
 
     def open_file(self):
         fp = self.fp
         if isinstance(fp, str):
-            self._true_fp = fp = open(fp, 'rb')
+            self._true_fp = fp = open(fp, "rb")
         return fp
 
     def close(self):

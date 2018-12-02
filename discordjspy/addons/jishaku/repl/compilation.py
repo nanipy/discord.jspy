@@ -37,15 +37,15 @@ async def _repl_coroutine({0}):
 """
 
 
-def get_wrapped_code(code: str, args: str = ''):
+def get_wrapped_code(code: str, args: str = ""):
     """
     Wraps code into an async function body for REPL.
     """
 
-    return CORO_CODE.format(args, textwrap.indent(code, ' ' * 8))
+    return CORO_CODE.format(args, textwrap.indent(code, " " * 8))
 
 
-def maybe_add_return(code: str, args: str = '') -> ast.Module:
+def maybe_add_return(code: str, args: str = "") -> ast.Module:
     """
     Compiles Python code into an async function or generator,
     and automatically adds return if the function body is a single evaluation.
@@ -112,9 +112,15 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
         print(total)
     """
 
-    __slots__ = ('args', 'arg_names', 'code', 'loop', 'scope')
+    __slots__ = ("args", "arg_names", "code", "loop", "scope")
 
-    def __init__(self, code: str, scope: Scope = None, arg_dict: dict = None, loop: asyncio.BaseEventLoop = None):
+    def __init__(
+        self,
+        code: str,
+        scope: Scope = None,
+        arg_dict: dict = None,
+        loop: asyncio.BaseEventLoop = None,
+    ):
         self.args = []
         self.arg_names = []
 
@@ -123,13 +129,18 @@ class AsyncCodeExecutor:  # pylint: disable=too-few-public-methods
                 self.arg_names.append(key)
                 self.args.append(value)
 
-        self.code = maybe_add_return(code, args=', '.join(self.arg_names))
+        self.code = maybe_add_return(code, args=", ".join(self.arg_names))
         self.scope = scope or Scope()
         self.loop = loop or asyncio.get_event_loop()
 
     def __aiter__(self):
-        exec(compile(self.code, '<repl>', 'exec'), self.scope.globals, self.scope.locals)  # pylint: disable=exec-used
-        func_def = self.scope.locals.get('_repl_coroutine') or self.scope.globals['_repl_coroutine']
+        exec(
+            compile(self.code, "<repl>", "exec"), self.scope.globals, self.scope.locals
+        )  # pylint: disable=exec-used
+        func_def = (
+            self.scope.locals.get("_repl_coroutine")
+            or self.scope.globals["_repl_coroutine"]
+        )
 
         return self.traverse(func_def)
 

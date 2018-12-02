@@ -36,6 +36,7 @@ from .enums import Status, try_enum
 from .colour import Colour
 from .object import Object
 
+
 class VoiceState:
     """Represents a Discord user's voice state.
 
@@ -56,28 +57,40 @@ class VoiceState:
         is not currently in a voice channel.
     """
 
-    __slots__ = ('session_id', 'deaf', 'mute', 'self_mute',
-                 'self_deaf', 'afk', 'channel')
+    __slots__ = (
+        "session_id",
+        "deaf",
+        "mute",
+        "self_mute",
+        "self_deaf",
+        "afk",
+        "channel",
+    )
 
     def __init__(self, *, data, channel=None):
-        self.session_id = data.get('session_id')
+        self.session_id = data.get("session_id")
         self._update(data, channel)
 
     def _update(self, data, channel):
-        self.self_mute = data.get('self_mute', False)
-        self.self_deaf = data.get('self_deaf', False)
-        self.afk = data.get('suppress', False)
-        self.mute = data.get('mute', False)
-        self.deaf = data.get('deaf', False)
+        self.self_mute = data.get("self_mute", False)
+        self.self_deaf = data.get("self_deaf", False)
+        self.afk = data.get("suppress", False)
+        self.mute = data.get("mute", False)
+        self.deaf = data.get("deaf", False)
         self.channel = channel
 
     def __repr__(self):
-        return '<VoiceState self_mute={0.self_mute} self_deaf={0.self_deaf} channel={0.channel!r}>'.format(self)
+        return "<VoiceState self_mute={0.self_mute} self_deaf={0.self_deaf} channel={0.channel!r}>".format(
+            self
+        )
+
 
 def flatten_user(cls):
-    for attr, value in itertools.chain(BaseUser.__dict__.items(), User.__dict__.items()):
+    for attr, value in itertools.chain(
+        BaseUser.__dict__.items(), User.__dict__.items()
+    ):
         # ignore private/special methods
-        if attr.startswith('_'):
+        if attr.startswith("_"):
             continue
 
         # don't override what we already have
@@ -86,10 +99,14 @@ def flatten_user(cls):
 
         # if it's a slotted attribute or a property, redirect it
         # slotted members are implemented as member_descriptors in Type.__dict__
-        if not hasattr(value, '__annotations__'):
+        if not hasattr(value, "__annotations__"):
+
             def getter(self, x=attr):
                 return getattr(self._user, x)
-            setattr(cls, attr, property(getter, doc='Equivalent to :attr:`User.%s`' % attr))
+
+            setattr(
+                cls, attr, property(getter, doc="Equivalent to :attr:`User.%s`" % attr)
+            )
         else:
             # probably a member function by now
             def generate_function(x):
@@ -105,7 +122,9 @@ def flatten_user(cls):
 
     return cls
 
+
 _BaseUser = discordjspy.abc.User
+
 
 @flatten_user
 class Member(discordjspy.abc.Messageable, _BaseUser):
@@ -149,24 +168,35 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         The guild specific nickname of the user.
     """
 
-    __slots__ = ('_roles', 'joined_at', 'status', 'activities', 'guild', 'nick', '_user', '_state')
+    __slots__ = (
+        "_roles",
+        "joined_at",
+        "status",
+        "activities",
+        "guild",
+        "nick",
+        "_user",
+        "_state",
+    )
 
     def __init__(self, *, data, guild, state):
         self._state = state
-        self._user = state.store_user(data['user'])
+        self._user = state.store_user(data["user"])
         self.guild = guild
-        self.joined_at = utils.parse_time(data.get('joined_at'))
+        self.joined_at = utils.parse_time(data.get("joined_at"))
         self._update_roles(data)
         self.status = Status.offline
-        self.activities = tuple(map(create_activity, data.get('activities', [])))
-        self.nick = data.get('nick', None)
+        self.activities = tuple(map(create_activity, data.get("activities", [])))
+        self.nick = data.get("nick", None)
 
     def __str__(self):
         return str(self._user)
 
     def __repr__(self):
-        return '<Member id={1.id} name={1.name!r} discriminator={1.discriminator!r}' \
-               ' bot={1.bot} nick={0.nick!r} guild={0.guild!r}>'.format(self, self._user)
+        return (
+            "<Member id={1.id} name={1.name!r} discriminator={1.discriminator!r}"
+            " bot={1.bot} nick={0.nick!r} guild={0.guild!r}>".format(self, self._user)
+        )
 
     def __eq__(self, other):
         return isinstance(other, _BaseUser) and other.id == self.id
@@ -179,7 +209,7 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
 
     @classmethod
     def _copy(cls, member):
-        self = cls.__new__(cls) # to bypass __init__
+        self = cls.__new__(cls)  # to bypass __init__
 
         self._roles = utils.SnowflakeList(member._roles, is_sorted=True)
         self.joined_at = member.joined_at
@@ -196,33 +226,33 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         return ch
 
     def _update_roles(self, data):
-        self._roles = utils.SnowflakeList(map(int, data['roles']))
+        self._roles = utils.SnowflakeList(map(int, data["roles"]))
 
     def _update(self, data, user=None):
         if user:
-            self._user.name = user['username']
-            self._user.discriminator = user['discriminator']
-            self._user.avatar = user['avatar']
-            self._user.bot = user.get('bot', False)
+            self._user.name = user["username"]
+            self._user.discriminator = user["discriminator"]
+            self._user.avatar = user["avatar"]
+            self._user.bot = user.get("bot", False)
 
         # the nickname change is optional,
         # if it isn't in the payload then it didn't change
         try:
-            self.nick = data['nick']
+            self.nick = data["nick"]
         except KeyError:
             pass
 
         self._update_roles(data)
 
     def _presence_update(self, data, user):
-        self.status = try_enum(Status, data['status'])
-        self.activities = tuple(map(create_activity, data.get('activities', [])))
+        self.status = try_enum(Status, data["status"])
+        self.activities = tuple(map(create_activity, data.get("activities", [])))
 
         if len(user) > 1:
             u = self._user
-            u.name = user.get('username', u.name)
-            u.avatar = user.get('avatar', u.avatar)
-            u.discriminator = user.get('discriminator', u.discriminator)
+            u.name = user.get("username", u.name)
+            u.avatar = user.get("avatar", u.avatar)
+            u.discriminator = user.get("discriminator", u.discriminator)
 
     @property
     def colour(self):
@@ -233,7 +263,7 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         There is an alias for this under ``color``.
         """
 
-        roles = self.roles[1:] # remove @everyone
+        roles = self.roles[1:]  # remove @everyone
 
         # highest order of the colour is the one that gets rendered.
         # if the highest is the default colour then the next one with a colour
@@ -267,8 +297,8 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
     def mention(self):
         """Returns a string that mentions the member."""
         if self.nick:
-            return '<@!%s>' % self.id
-        return '<@%s>' % self.id
+            return "<@!%s>" % self.id
+        return "<@%s>" % self.id
 
     @property
     def display_name(self):
@@ -437,38 +467,38 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         payload = {}
 
         try:
-            nick = fields['nick']
+            nick = fields["nick"]
         except KeyError:
             # nick not present so...
             pass
         else:
-            nick = nick if nick else ''
+            nick = nick if nick else ""
             if self._state.self_id == self.id:
                 await http.change_my_nickname(guild_id, nick, reason=reason)
             else:
-                payload['nick'] = nick
+                payload["nick"] = nick
 
-        deafen = fields.get('deafen')
+        deafen = fields.get("deafen")
         if deafen is not None:
-            payload['deaf'] = deafen
+            payload["deaf"] = deafen
 
-        mute = fields.get('mute')
+        mute = fields.get("mute")
         if mute is not None:
-            payload['mute'] = mute
+            payload["mute"] = mute
 
         try:
-            vc = fields['voice_channel']
+            vc = fields["voice_channel"]
         except KeyError:
             pass
         else:
-            payload['channel_id'] = vc.id
+            payload["channel_id"] = vc.id
 
         try:
-            roles = fields['roles']
+            roles = fields["roles"]
         except KeyError:
             pass
         else:
-            payload['roles'] = tuple(r.id for r in roles)
+            payload["roles"] = tuple(r.id for r in roles)
 
         await http.edit_member(guild_id, self.id, reason=reason, **payload)
 
@@ -522,7 +552,9 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         """
 
         if not atomic:
-            new_roles = utils._unique(Object(id=r.id) for s in (self.roles[1:], roles) for r in s)
+            new_roles = utils._unique(
+                Object(id=r.id) for s in (self.roles[1:], roles) for r in s
+            )
             await self.edit(roles=new_roles, reason=reason)
         else:
             req = self._state.http.add_role
@@ -560,7 +592,7 @@ class Member(discordjspy.abc.Messageable, _BaseUser):
         """
 
         if not atomic:
-            new_roles = [Object(id=r.id) for r in self.roles[1:]] # remove @everyone
+            new_roles = [Object(id=r.id) for r in self.roles[1:]]  # remove @everyone
             for role in roles:
                 try:
                     new_roles.remove(Object(id=role.id))
