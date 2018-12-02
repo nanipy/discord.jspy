@@ -15,7 +15,7 @@ Additions to discord.py rewrite
 
 discord.jspy adds the following features on top of the latest discord.py rewrite version:
 
-- Addon support using `bot.enable`
+- Addon support using ``bot.enable``
 - Mutiple bot owners
 
 We recommend joining either the `official discord.py server <https://discord.gg/r3sSKJJ>`_ or the `Discord API server <https://discord.gg/discord-api>`_ for help and discussion about the discord.py library.
