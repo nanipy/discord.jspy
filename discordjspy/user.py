@@ -35,7 +35,10 @@ from .colour import Colour
 VALID_STATIC_FORMATS = {"jpeg", "jpg", "webp", "png"}
 VALID_AVATAR_FORMATS = VALID_STATIC_FORMATS | {"gif"}
 
-class Profile(namedtuple('Profile', 'flags user mutual_guilds connected_accounts premium_since')):
+
+class Profile(
+    namedtuple("Profile", "flags user mutual_guilds connected_accounts premium_since")
+):
     __slots__ = ()
 
     @property
@@ -70,24 +73,32 @@ class Profile(namedtuple('Profile', 'flags user mutual_guilds connected_accounts
 
     @property
     def hypesquad_houses(self):
-        flags = (UserFlags.hypesquad_bravery, UserFlags.hypesquad_brilliance, UserFlags.hypesquad_balance)
-        return [house for house, flag in zip(HypeSquadHouse, flags) if self._has_flag(flag)]
+        flags = (
+            UserFlags.hypesquad_bravery,
+            UserFlags.hypesquad_brilliance,
+            UserFlags.hypesquad_balance,
+        )
+        return [
+            house for house, flag in zip(HypeSquadHouse, flags) if self._has_flag(flag)
+        ]
+
 
 _BaseUser = discordjspy.abc.User
 
+
 class BaseUser(_BaseUser):
-    __slots__ = ('name', 'id', 'discriminator', 'avatar', 'bot', '_state')
+    __slots__ = ("name", "id", "discriminator", "avatar", "bot", "_state")
 
     def __init__(self, *, state, data):
         self._state = state
-        self.name = data['username']
-        self.id = int(data['id'])
-        self.discriminator = data['discriminator']
-        self.avatar = data['avatar']
-        self.bot = data.get('bot', False)
+        self.name = data["username"]
+        self.id = int(data["id"])
+        self.discriminator = data["discriminator"]
+        self.avatar = data["avatar"]
+        self.bot = data.get("bot", False)
 
     def __str__(self):
-        return '{0.name}#{0.discriminator}'.format(self)
+        return "{0.name}#{0.discriminator}".format(self)
 
     def __eq__(self, other):
         return isinstance(other, _BaseUser) and other.id == self.id
@@ -100,7 +111,7 @@ class BaseUser(_BaseUser):
 
     @classmethod
     def _copy(cls, user):
-        self = cls.__new__(cls) # bypass __init__
+        self = cls.__new__(cls)  # bypass __init__
 
         self.name = user.name
         self.id = user.id
@@ -125,9 +136,9 @@ class BaseUser(_BaseUser):
 
     def is_avatar_animated(self):
         """:class:`bool`: Returns True if the user has an animated avatar."""
-        return bool(self.avatar and self.avatar.startswith('a_'))
+        return bool(self.avatar and self.avatar.startswith("a_"))
 
-    def avatar_url_as(self, *, format=None, static_format='webp', size=1024):
+    def avatar_url_as(self, *, format=None, static_format="webp", size=1024):
         """Returns a friendly URL version of the avatar the user has.
 
         If the user does not have a traditional avatar, their default
@@ -164,22 +175,28 @@ class BaseUser(_BaseUser):
         if not valid_icon_size(size):
             raise InvalidArgument("size must be a power of 2 between 16 and 1024")
         if format is not None and format not in VALID_AVATAR_FORMATS:
-            raise InvalidArgument("format must be None or one of {}".format(VALID_AVATAR_FORMATS))
+            raise InvalidArgument(
+                "format must be None or one of {}".format(VALID_AVATAR_FORMATS)
+            )
         if format == "gif" and not self.is_avatar_animated():
             raise InvalidArgument("non animated avatars do not support gif format")
         if static_format not in VALID_STATIC_FORMATS:
-            raise InvalidArgument("static_format must be one of {}".format(VALID_STATIC_FORMATS))
+            raise InvalidArgument(
+                "static_format must be one of {}".format(VALID_STATIC_FORMATS)
+            )
 
         if self.avatar is None:
             return self.default_avatar_url
 
         if format is None:
             if self.is_avatar_animated():
-                format = 'gif'
+                format = "gif"
             else:
                 format = static_format
 
-        return 'https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.{1}?size={2}'.format(self, format, size)
+        return "https://cdn.discordapp.com/avatars/{0.id}/{0.avatar}.{1}?size={2}".format(
+            self, format, size
+        )
 
     @property
     def default_avatar(self):
@@ -189,7 +206,9 @@ class BaseUser(_BaseUser):
     @property
     def default_avatar_url(self):
         """Returns a URL for a user's default avatar."""
-        return 'https://cdn.discordapp.com/embed/avatars/{}.png'.format(self.default_avatar.value)
+        return "https://cdn.discordapp.com/embed/avatars/{}.png".format(
+            self.default_avatar.value
+        )
 
     @property
     def colour(self):
@@ -205,7 +224,7 @@ class BaseUser(_BaseUser):
     @property
     def mention(self):
         """Returns a string that allows you to mention the given user."""
-        return '<@{0.id}>'.format(self)
+        return "<@{0.id}>".format(self)
 
     def permissions_in(self, channel):
         """An alias for :meth:`abc.GuildChannel.permissions_for`.
@@ -258,6 +277,7 @@ class BaseUser(_BaseUser):
 
         return False
 
+
 class ClientUser(BaseUser):
     """Represents your Discord user.
 
@@ -300,20 +320,24 @@ class ClientUser(BaseUser):
     premium: :class:`bool`
         Specifies if the user is a premium user (e.g. has Discord Nitro).
     """
-    __slots__ = ('email', 'verified', 'mfa_enabled', 'premium', '_relationships')
+
+    __slots__ = ("email", "verified", "mfa_enabled", "premium", "_relationships")
 
     def __init__(self, *, state, data):
         super().__init__(state=state, data=data)
-        self.verified = data.get('verified', False)
-        self.email = data.get('email')
-        self.mfa_enabled = data.get('mfa_enabled', False)
-        self.premium = data.get('premium', False)
+        self.verified = data.get("verified", False)
+        self.email = data.get("email")
+        self.mfa_enabled = data.get("mfa_enabled", False)
+        self.premium = data.get("premium", False)
         self._relationships = {}
 
     def __repr__(self):
-        return '<ClientUser id={0.id} name={0.name!r} discriminator={0.discriminator!r}' \
-               ' bot={0.bot} verified={0.verified} mfa_enabled={0.mfa_enabled}>'.format(self)
-
+        return (
+            "<ClientUser id={0.id} name={0.name!r} discriminator={0.discriminator!r}"
+            " bot={0.bot} verified={0.verified} mfa_enabled={0.mfa_enabled}>".format(
+                self
+            )
+        )
 
     def get_relationship(self, user_id):
         """Retrieves the :class:`Relationship` if applicable.
@@ -338,12 +362,20 @@ class ClientUser(BaseUser):
     @property
     def friends(self):
         r"""Returns a :class:`list` of :class:`User`\s that the user is friends with."""
-        return [r.user for r in self._relationships.values() if r.type is RelationshipType.friend]
+        return [
+            r.user
+            for r in self._relationships.values()
+            if r.type is RelationshipType.friend
+        ]
 
     @property
     def blocked(self):
         r"""Returns a :class:`list` of :class:`User`\s that the user has blocked."""
-        return [r.user for r in self._relationships.values() if r.type is RelationshipType.blocked]
+        return [
+            r.user
+            for r in self._relationships.values()
+            if r.type is RelationshipType.blocked
+        ]
 
     async def edit(self, **fields):
         """|coro|
@@ -395,7 +427,7 @@ class ClientUser(BaseUser):
         """
 
         try:
-            avatar_bytes = fields['avatar']
+            avatar_bytes = fields["avatar"]
         except KeyError:
             avatar = self.avatar
         else:
@@ -405,30 +437,30 @@ class ClientUser(BaseUser):
                 avatar = None
 
         not_bot_account = not self.bot
-        password = fields.get('password')
+        password = fields.get("password")
         if not_bot_account and password is None:
-            raise ClientException('Password is required for non-bot accounts.')
+            raise ClientException("Password is required for non-bot accounts.")
 
         args = {
-            'password': password,
-            'username': fields.get('username', self.name),
-            'avatar': avatar
+            "password": password,
+            "username": fields.get("username", self.name),
+            "avatar": avatar,
         }
 
         if not_bot_account:
-            args['email'] = fields.get('email', self.email)
+            args["email"] = fields.get("email", self.email)
 
-            if 'new_password' in fields:
-                args['new_password'] = fields['new_password']
+            if "new_password" in fields:
+                args["new_password"] = fields["new_password"]
 
         http = self._state.http
 
-        if 'house' in fields:
-            house = fields['house']
+        if "house" in fields:
+            house = fields["house"]
             if house is None:
                 await http.leave_hypesquad_house()
             elif not isinstance(house, HypeSquadHouse):
-                raise ClientException('`house` parameter was not a HypeSquadHouse')
+                raise ClientException("`house` parameter was not a HypeSquadHouse")
             else:
                 value = house.value
 
@@ -436,9 +468,9 @@ class ClientUser(BaseUser):
 
         data = await http.edit_profile(**args)
         if not_bot_account:
-            self.email = data['email']
+            self.email = data["email"]
             try:
-                http._token(data['token'], bot=False)
+                http._token(data["token"], bot=False)
             except KeyError:
                 pass
 
@@ -477,11 +509,14 @@ class ClientUser(BaseUser):
         from .channel import GroupChannel
 
         if len(recipients) < 2:
-            raise ClientException('You must have two or more recipients to create a group.')
+            raise ClientException(
+                "You must have two or more recipients to create a group."
+            )
 
         users = [str(u.id) for u in recipients]
         data = await self._state.http.start_group(self.id, users)
         return GroupChannel(me=self, data=data, state=self._state)
+
 
 class User(BaseUser, discordjspy.abc.Messageable):
     """Represents a Discord user.
@@ -518,10 +553,12 @@ class User(BaseUser, discordjspy.abc.Messageable):
         Specifies if the user is a bot account.
     """
 
-    __slots__ = ('__weakref__',)
+    __slots__ = ("__weakref__",)
 
     def __repr__(self):
-        return '<User id={0.id} name={0.name!r} discriminator={0.discriminator!r} bot={0.bot}>'.format(self)
+        return "<User id={0.id} name={0.name!r} discriminator={0.discriminator!r} bot={0.bot}>".format(
+            self
+        )
 
     async def _get_channel(self):
         ch = await self.create_dm()
@@ -582,7 +619,9 @@ class User(BaseUser, discordjspy.abc.Messageable):
             Blocking the user failed.
         """
 
-        await self._state.http.add_relationship(self.id, type=RelationshipType.blocked.value)
+        await self._state.http.add_relationship(
+            self.id, type=RelationshipType.blocked.value
+        )
 
     async def unblock(self):
         """|coro|
@@ -624,7 +663,9 @@ class User(BaseUser, discordjspy.abc.Messageable):
         HTTPException
             Sending the friend request failed.
         """
-        await self._state.http.send_friend_request(username=self.name, discriminator=self.discriminator)
+        await self._state.http.send_friend_request(
+            username=self.name, discriminator=self.discriminator
+        )
 
     async def profile(self):
         """|coro|
@@ -648,12 +689,16 @@ class User(BaseUser, discordjspy.abc.Messageable):
         data = await state.http.get_user_profile(self.id)
 
         def transform(d):
-            return state._get_guild(int(d['id']))
+            return state._get_guild(int(d["id"]))
 
-        since = data.get('premium_since')
-        mutual_guilds = list(filter(None, map(transform, data.get('mutual_guilds', []))))
-        return Profile(flags=data['user'].get('flags', 0),
-                       premium_since=parse_time(since),
-                       mutual_guilds=mutual_guilds,
-                       user=self,
-                       connected_accounts=data['connected_accounts'])
+        since = data.get("premium_since")
+        mutual_guilds = list(
+            filter(None, map(transform, data.get("mutual_guilds", [])))
+        )
+        return Profile(
+            flags=data["user"].get("flags", 0),
+            premium_since=parse_time(since),
+            mutual_guilds=mutual_guilds,
+            user=self,
+            connected_accounts=data["connected_accounts"],
+        )

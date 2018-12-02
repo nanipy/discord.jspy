@@ -52,17 +52,22 @@ from .webhook import Webhook
 
 log = logging.getLogger(__name__)
 
-AppInfo = namedtuple('AppInfo',
-                     'id name description rpc_origins bot_public bot_require_code_grant icon owner')
+AppInfo = namedtuple(
+    "AppInfo",
+    "id name description rpc_origins bot_public bot_require_code_grant icon owner",
+)
+
 
 def app_info_icon_url(self):
     """Retrieves the application's icon_url if it exists. Empty string otherwise."""
     if not self.icon:
-        return ''
+        return ""
 
-    return 'https://cdn.discordapp.com/app-icons/{0.id}/{0.icon}.jpg'.format(self)
+    return "https://cdn.discordapp.com/app-icons/{0.id}/{0.icon}.jpg".format(self)
+
 
 AppInfo.icon_url = property(app_info_icon_url)
+
 
 class Client:
     r"""Represents a client connection that connects to Discord.
@@ -115,24 +120,32 @@ class Client:
     loop
         The `event loop`_ that the client uses for HTTP requests and websocket operations.
     """
+
     def __init__(self, *, loop=None, **options):
         self.ws = None
         self.loop = asyncio.get_event_loop() if loop is None else loop
         self._listeners = {}
-        self.shard_id = options.get('shard_id')
-        self.shard_count = options.get('shard_count')
+        self.shard_id = options.get("shard_id")
+        self.shard_count = options.get("shard_count")
 
-        connector = options.pop('connector', None)
-        proxy = options.pop('proxy', None)
-        proxy_auth = options.pop('proxy_auth', None)
-        self.http = HTTPClient(connector, proxy=proxy, proxy_auth=proxy_auth, loop=self.loop)
+        connector = options.pop("connector", None)
+        proxy = options.pop("proxy", None)
+        proxy_auth = options.pop("proxy_auth", None)
+        self.http = HTTPClient(
+            connector, proxy=proxy, proxy_auth=proxy_auth, loop=self.loop
+        )
 
-        self._handlers = {
-            'ready': self._handle_ready
-        }
+        self._handlers = {"ready": self._handle_ready}
 
-        self._connection = ConnectionState(dispatch=self.dispatch, chunker=self._chunker, handlers=self._handlers,
-                                           syncer=self._syncer, http=self.http, loop=self.loop, **options)
+        self._connection = ConnectionState(
+            dispatch=self.dispatch,
+            chunker=self._chunker,
+            handlers=self._handlers,
+            syncer=self._syncer,
+            http=self.http,
+            loop=self.loop,
+            **options
+        )
 
         self._connection.shard_count = self.shard_count
         self._closed = asyncio.Event(loop=self.loop)
@@ -154,14 +167,7 @@ class Client:
         except AttributeError:
             guild_id = [s.id for s in guild]
 
-        payload = {
-            'op': 8,
-            'd': {
-                'guild_id': guild_id,
-                'query': '',
-                'limit': 0
-            }
-        }
+        payload = {"op": 8, "d": {"guild_id": guild_id, "query": "", "limit": 0}}
 
         await self.ws.send_as_json(payload)
 
@@ -172,7 +178,7 @@ class Client:
         if isinstance(invite, Invite) or isinstance(invite, Object):
             return invite.id
         else:
-            rx = r'(?:https?\:\/\/)?discord\.gg\/(.+)'
+            rx = r"(?:https?\:\/\/)?discord\.gg\/(.+)"
             m = re.match(rx, invite)
             if m:
                 return m.group(1)
@@ -185,7 +191,7 @@ class Client:
         This could be referred to as the Discord WebSocket protocol latency.
         """
         ws = self.ws
-        return float('nan') if not ws else ws.latency
+        return float("nan") if not ws else ws.latency
 
     @property
     def user(self):
@@ -234,8 +240,8 @@ class Client:
                 pass
 
     def dispatch(self, event, *args, **kwargs):
-        log.debug('Dispatching event %s', event)
-        method = 'on_' + event
+        log.debug("Dispatching event %s", event)
+        method = "on_" + event
 
         listeners = self._listeners.get(event)
         if listeners:
@@ -271,7 +277,9 @@ class Client:
         except AttributeError:
             pass
         else:
-            asyncio.ensure_future(self._run_event(coro, method, *args, **kwargs), loop=self.loop)
+            asyncio.ensure_future(
+                self._run_event(coro, method, *args, **kwargs), loop=self.loop
+            )
 
     async def on_error(self, event_method, *args, **kwargs):
         """|coro|
@@ -282,7 +290,7 @@ class Client:
         overridden to have a different implementation.
         Check :func:`discord.on_error` for more details.
         """
-        print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
+        print("Ignoring exception in {}".format(event_method), file=sys.stderr)
         traceback.print_exc()
 
     async def request_offline_members(self, *guilds):
@@ -309,7 +317,7 @@ class Client:
             If any guild is unavailable or not large in the collection.
         """
         if any(not g.large or g.unavailable for g in guilds):
-            raise InvalidArgument('An unavailable or non-large guild was passed.')
+            raise InvalidArgument("An unavailable or non-large guild was passed.")
 
         await self._connection.request_offline_members(guilds)
 
@@ -348,7 +356,7 @@ class Client:
             passing status code.
         """
 
-        log.info('logging in using static token')
+        log.info("logging in using static token")
         await self.http.static_login(token, bot=bot)
         self._connection.is_bot = bot
 
@@ -366,9 +374,14 @@ class Client:
             try:
                 await self.ws.poll_event()
             except ResumeWebSocket:
-                log.info('Got a request to RESUME the websocket.')
-                coro = DiscordWebSocket.from_client(self, shard_id=self.shard_id, session=self.ws.session_id,
-                                                    sequence=self.ws.sequence, resume=True)
+                log.info("Got a request to RESUME the websocket.")
+                coro = DiscordWebSocket.from_client(
+                    self,
+                    shard_id=self.shard_id,
+                    session=self.ws.session_id,
+                    sequence=self.ws.sequence,
+                    resume=True,
+                )
                 self.ws = await asyncio.wait_for(coro, timeout=180.0, loop=self.loop)
 
     async def connect(self, *, reconnect=True):
@@ -400,14 +413,16 @@ class Client:
         while not self.is_closed():
             try:
                 await self._connect()
-            except (OSError,
-                    HTTPException,
-                    GatewayNotFound,
-                    ConnectionClosed,
-                    aiohttp.ClientError,
-                    asyncio.TimeoutError,
-                    websockets.InvalidHandshake,
-                    websockets.WebSocketProtocolError) as exc:
+            except (
+                OSError,
+                HTTPException,
+                GatewayNotFound,
+                ConnectionClosed,
+                aiohttp.ClientError,
+                asyncio.TimeoutError,
+                websockets.InvalidHandshake,
+                websockets.WebSocketProtocolError,
+            ) as exc:
 
                 if not reconnect:
                     await self.close()
@@ -452,7 +467,6 @@ class Client:
         if self.ws is not None and self.ws.open:
             await self.ws.close()
 
-
         await self.http.close()
         self._ready.clear()
 
@@ -474,16 +488,16 @@ class Client:
         A shorthand coroutine for :meth:`login` + :meth:`connect`.
         """
 
-        bot = kwargs.pop('bot', True)
-        reconnect = kwargs.pop('reconnect', True)
+        bot = kwargs.pop("bot", True)
+        reconnect = kwargs.pop("reconnect", True)
         await self.login(*args, bot=bot)
         await self.connect(reconnect=reconnect)
 
     def _do_cleanup(self):
-        log.info('Cleaning up event loop.')
+        log.info("Cleaning up event loop.")
         loop = self.loop
         if loop.is_closed():
-            return # we're already cleaning up
+            return  # we're already cleaning up
 
         task = asyncio.ensure_future(self.close(), loop=loop)
 
@@ -498,7 +512,7 @@ class Client:
         def when_future_is_done(fut):
             pending = asyncio.Task.all_tasks(loop=loop)
             if pending:
-                log.info('Cleaning up after %s tasks', len(pending))
+                log.info("Cleaning up after %s tasks", len(pending))
                 gathered = asyncio.gather(*pending, loop=loop)
                 gathered.cancel()
                 gathered.add_done_callback(_silence_gathered)
@@ -516,7 +530,7 @@ class Client:
             return None
 
         try:
-            return task.result() # suppress unused task warning
+            return task.result()  # suppress unused task warning
         except Exception:
             return None
 
@@ -544,7 +558,7 @@ class Client:
         is blocking. That means that registration of events or anything being
         called after this function call will not execute until it returns.
         """
-        is_windows = sys.platform == 'win32'
+        is_windows = sys.platform == "win32"
         loop = self.loop
         if not is_windows:
             loop.add_signal_handler(signal.SIGINT, self._do_cleanup)
@@ -560,7 +574,7 @@ class Client:
         try:
             loop.run_forever()
         except KeyboardInterrupt:
-            log.info('Received signal to terminate bot and event loop.')
+            log.info("Received signal to terminate bot and event loop.")
         finally:
             task.remove_done_callback(stop_loop_on_finish)
             if is_windows:
@@ -589,7 +603,7 @@ class Client:
         elif isinstance(value, _ActivityTag):
             self._connection._activity = value.to_dict()
         else:
-            raise TypeError('activity must be one of Game, Streaming, or Activity.')
+            raise TypeError("activity must be one of Game, Streaming, or Activity.")
 
     # helpers/getters
 
@@ -744,8 +758,10 @@ class Client:
 
         future = self.loop.create_future()
         if check is None:
+
             def _check(*args):
                 return True
+
             check = _check
 
         ev = event.lower()
@@ -778,10 +794,10 @@ class Client:
         """
 
         if not asyncio.iscoroutinefunction(coro):
-            raise ClientException('event registered must be a coroutine function')
+            raise ClientException("event registered must be a coroutine function")
 
         setattr(self, coro.__name__, coro)
-        log.debug('%s has successfully been registered as an event', coro.__name__)
+        log.debug("%s has successfully been registered as an event", coro.__name__)
         return coro
 
     async def change_presence(self, *, activity=None, status=None, afk=False):
@@ -817,10 +833,10 @@ class Client:
         """
 
         if status is None:
-            status = 'online'
+            status = "online"
             status_enum = Status.online
         elif status is Status.offline:
-            status = 'invisible'
+            status = "invisible"
             status_enum = Status.offline
         else:
             status_enum = status
@@ -959,13 +975,18 @@ class Client:
             Retrieving the information failed somehow.
         """
         data = await self.http.application_info()
-        if 'rpc_origins' not in data:
-            data['rpc_origins'] = None
-        return AppInfo(id=int(data['id']), name=data['name'],
-                       description=data['description'], icon=data['icon'],
-                       rpc_origins=data['rpc_origins'], bot_public=data['bot_public'],
-                       bot_require_code_grant=data['bot_require_code_grant'],
-                       owner=User(state=self._connection, data=data['owner']))
+        if "rpc_origins" not in data:
+            data["rpc_origins"] = None
+        return AppInfo(
+            id=int(data["id"]),
+            name=data["name"],
+            description=data["description"],
+            icon=data["icon"],
+            rpc_origins=data["rpc_origins"],
+            bot_public=data["bot_public"],
+            bot_require_code_grant=data["bot_require_code_grant"],
+            owner=User(state=self._connection, data=data["owner"]),
+        )
 
     async def get_user_info(self, user_id):
         """|coro|
@@ -1022,16 +1043,20 @@ class Client:
         data = await self.http.get_user_profile(user_id)
 
         def transform(d):
-            return state._get_guild(int(d['id']))
+            return state._get_guild(int(d["id"]))
 
-        since = data.get('premium_since')
-        mutual_guilds = list(filter(None, map(transform, data.get('mutual_guilds', []))))
-        user = data['user']
-        return Profile(flags=user.get('flags', 0),
-                       premium_since=utils.parse_time(since),
-                       mutual_guilds=mutual_guilds,
-                       user=User(data=user, state=state),
-                       connected_accounts=data['connected_accounts'])
+        since = data.get("premium_since")
+        mutual_guilds = list(
+            filter(None, map(transform, data.get("mutual_guilds", [])))
+        )
+        user = data["user"]
+        return Profile(
+            flags=user.get("flags", 0),
+            premium_since=utils.parse_time(since),
+            mutual_guilds=mutual_guilds,
+            user=User(data=user, state=state),
+            connected_accounts=data["connected_accounts"],
+        )
 
     async def get_webhook_info(self, webhook_id):
         """|coro|

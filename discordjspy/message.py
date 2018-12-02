@@ -35,6 +35,7 @@ from .enums import MessageType, try_enum
 from .errors import InvalidArgument, ClientException, HTTPException
 from .embeds import Embed
 
+
 class Attachment:
     """Represents an attachment from Discord.
 
@@ -59,16 +60,25 @@ class Attachment:
         minutes or not valid at all.
     """
 
-    __slots__ = ('id', 'size', 'height', 'width', 'filename', 'url', 'proxy_url', '_http')
+    __slots__ = (
+        "id",
+        "size",
+        "height",
+        "width",
+        "filename",
+        "url",
+        "proxy_url",
+        "_http",
+    )
 
     def __init__(self, *, data, state):
-        self.id = int(data['id'])
-        self.size = data['size']
-        self.height = data.get('height')
-        self.width = data.get('width')
-        self.filename = data['filename']
-        self.url = data.get('url')
-        self.proxy_url = data.get('proxy_url')
+        self.id = int(data["id"])
+        self.size = data["size"]
+        self.height = data.get("height")
+        self.width = data.get("width")
+        self.filename = data["filename"]
+        self.url = data.get("url")
+        self.proxy_url = data.get("proxy_url")
         self._http = state.http
 
     async def save(self, fp, *, seek_begin=True):
@@ -101,13 +111,14 @@ class Attachment:
 
         data = await self._http.get_attachment(self.url)
         if isinstance(fp, str):
-            with open(fp, 'wb') as f:
+            with open(fp, "wb") as f:
                 return f.write(data)
         else:
             written = fp.write(data)
             if seek_begin:
                 fp.seek(0)
             return written
+
 
 class Message:
     r"""Represents a message from Discord.
@@ -194,25 +205,49 @@ class Message:
         - ``cover_image``: A string representing the embed's image asset ID.
     """
 
-    __slots__ = ('_edited_timestamp', 'tts', 'content', 'channel', 'webhook_id',
-                 'mention_everyone', 'embeds', 'id', 'mentions', 'author',
-                 '_cs_channel_mentions', '_cs_raw_mentions', 'attachments',
-                 '_cs_clean_content', '_cs_raw_channel_mentions', 'nonce', 'pinned',
-                 'role_mentions', '_cs_raw_role_mentions', 'type', 'call',
-                 '_cs_system_content', '_cs_guild', '_state', 'reactions',
-                 'application', 'activity')
+    __slots__ = (
+        "_edited_timestamp",
+        "tts",
+        "content",
+        "channel",
+        "webhook_id",
+        "mention_everyone",
+        "embeds",
+        "id",
+        "mentions",
+        "author",
+        "_cs_channel_mentions",
+        "_cs_raw_mentions",
+        "attachments",
+        "_cs_clean_content",
+        "_cs_raw_channel_mentions",
+        "nonce",
+        "pinned",
+        "role_mentions",
+        "_cs_raw_role_mentions",
+        "type",
+        "call",
+        "_cs_system_content",
+        "_cs_guild",
+        "_state",
+        "reactions",
+        "application",
+        "activity",
+    )
 
     def __init__(self, *, state, channel, data):
         self._state = state
-        self.id = int(data['id'])
-        self.webhook_id = utils._get_as_snowflake(data, 'webhook_id')
-        self.reactions = [Reaction(message=self, data=d) for d in data.get('reactions', [])]
-        self.application = data.get('application')
-        self.activity = data.get('activity')
+        self.id = int(data["id"])
+        self.webhook_id = utils._get_as_snowflake(data, "webhook_id")
+        self.reactions = [
+            Reaction(message=self, data=d) for d in data.get("reactions", [])
+        ]
+        self.application = data.get("application")
+        self.activity = data.get("activity")
         self._update(channel, data)
 
     def __repr__(self):
-        return '<Message id={0.id} pinned={0.pinned} author={0.author!r}>'.format(self)
+        return "<Message id={0.id} pinned={0.pinned} author={0.author!r}>".format(self)
 
     def _try_patch(self, data, key, transform=None):
         try:
@@ -227,7 +262,7 @@ class Message:
 
     def _add_reaction(self, data, emoji, user_id):
         reaction = utils.find(lambda r: r.emoji == emoji, self.reactions)
-        is_me = data['me'] = user_id == self._state.self_id
+        is_me = data["me"] = user_id == self._state.self_id
 
         if reaction is None:
             reaction = Reaction(message=self, data=data, emoji=emoji)
@@ -244,7 +279,7 @@ class Message:
 
         if reaction is None:
             # already removed?
-            raise ValueError('Emoji already removed?')
+            raise ValueError("Emoji already removed?")
 
         # if reaction isn't in the list, we crash. This means discord
         # sent bad data, or we stored improperly
@@ -260,26 +295,30 @@ class Message:
 
     def _update(self, channel, data):
         self.channel = channel
-        self._edited_timestamp = utils.parse_time(data.get('edited_timestamp'))
-        self._try_patch(data, 'pinned')
-        self._try_patch(data, 'application')
-        self._try_patch(data, 'activity')
-        self._try_patch(data, 'mention_everyone')
-        self._try_patch(data, 'tts')
-        self._try_patch(data, 'type', lambda x: try_enum(MessageType, x))
-        self._try_patch(data, 'content')
-        self._try_patch(data, 'attachments', lambda x: [Attachment(data=a, state=self._state) for a in x])
-        self._try_patch(data, 'embeds', lambda x: list(map(Embed.from_data, x)))
-        self._try_patch(data, 'nonce')
+        self._edited_timestamp = utils.parse_time(data.get("edited_timestamp"))
+        self._try_patch(data, "pinned")
+        self._try_patch(data, "application")
+        self._try_patch(data, "activity")
+        self._try_patch(data, "mention_everyone")
+        self._try_patch(data, "tts")
+        self._try_patch(data, "type", lambda x: try_enum(MessageType, x))
+        self._try_patch(data, "content")
+        self._try_patch(
+            data,
+            "attachments",
+            lambda x: [Attachment(data=a, state=self._state) for a in x],
+        )
+        self._try_patch(data, "embeds", lambda x: list(map(Embed.from_data, x)))
+        self._try_patch(data, "nonce")
 
-        for handler in ('author', 'mentions', 'mention_roles', 'call'):
+        for handler in ("author", "mentions", "mention_roles", "call"):
             try:
-                getattr(self, '_handle_%s' % handler)(data[handler])
+                getattr(self, "_handle_%s" % handler)(data[handler])
             except KeyError:
                 continue
 
         # clear the cached properties
-        cached = filter(lambda attr: attr.startswith('_cs_'), self.__slots__)
+        cached = filter(lambda attr: attr.startswith("_cs_"), self.__slots__)
         for attr in cached:
             try:
                 delattr(self, attr)
@@ -300,7 +339,7 @@ class Message:
             return
 
         for mention in filter(None, mentions):
-            id_search = int(mention['id'])
+            id_search = int(mention["id"])
             member = self.guild.get_member(id_search)
             if member is not None:
                 self.mentions.append(member)
@@ -322,7 +361,7 @@ class Message:
         # the author
 
         participants = []
-        for uid in map(int, call.get('participants', [])):
+        for uid in map(int, call.get("participants", [])):
             if uid == self.author.id:
                 participants.append(self.author)
             else:
@@ -330,15 +369,15 @@ class Message:
                 if user is not None:
                     participants.append(user)
 
-        call['participants'] = participants
+        call["participants"] = participants
         self.call = CallMessage(message=self, **call)
 
-    @utils.cached_slot_property('_cs_guild')
+    @utils.cached_slot_property("_cs_guild")
     def guild(self):
         """Optional[:class:`Guild`]: The guild that the message belongs to, if applicable."""
-        return getattr(self.channel, 'guild', None)
+        return getattr(self.channel, "guild", None)
 
-    @utils.cached_slot_property('_cs_raw_mentions')
+    @utils.cached_slot_property("_cs_raw_mentions")
     def raw_mentions(self):
         """A property that returns an array of user IDs matched with
         the syntax of <@user_id> in the message content.
@@ -346,30 +385,30 @@ class Message:
         This allows you to receive the user IDs of mentioned users
         even in a private message context.
         """
-        return [int(x) for x in re.findall(r'<@!?([0-9]+)>', self.content)]
+        return [int(x) for x in re.findall(r"<@!?([0-9]+)>", self.content)]
 
-    @utils.cached_slot_property('_cs_raw_channel_mentions')
+    @utils.cached_slot_property("_cs_raw_channel_mentions")
     def raw_channel_mentions(self):
         """A property that returns an array of channel IDs matched with
         the syntax of <#channel_id> in the message content.
         """
-        return [int(x) for x in re.findall(r'<#([0-9]+)>', self.content)]
+        return [int(x) for x in re.findall(r"<#([0-9]+)>", self.content)]
 
-    @utils.cached_slot_property('_cs_raw_role_mentions')
+    @utils.cached_slot_property("_cs_raw_role_mentions")
     def raw_role_mentions(self):
         """A property that returns an array of role IDs matched with
         the syntax of <@&role_id> in the message content.
         """
-        return [int(x) for x in re.findall(r'<@&([0-9]+)>', self.content)]
+        return [int(x) for x in re.findall(r"<@&([0-9]+)>", self.content)]
 
-    @utils.cached_slot_property('_cs_channel_mentions')
+    @utils.cached_slot_property("_cs_channel_mentions")
     def channel_mentions(self):
         if self.guild is None:
             return []
         it = filter(None, map(self.guild.get_channel, self.raw_channel_mentions))
         return utils._unique(it)
 
-    @utils.cached_slot_property('_cs_clean_content')
+    @utils.cached_slot_property("_cs_clean_content")
     def clean_content(self):
         """A property that returns the content in a "cleaned up"
         manner. This basically means that mentions are transformed
@@ -381,18 +420,18 @@ class Message:
         """
 
         transformations = {
-            re.escape('<#%s>' % channel.id): '#' + channel.name
+            re.escape("<#%s>" % channel.id): "#" + channel.name
             for channel in self.channel_mentions
         }
 
         mention_transforms = {
-            re.escape('<@%s>' % member.id): '@' + member.display_name
+            re.escape("<@%s>" % member.id): "@" + member.display_name
             for member in self.mentions
         }
 
         # add the <@!user_id> cases as well..
         second_mention_transforms = {
-            re.escape('<@!%s>' % member.id): '@' + member.display_name
+            re.escape("<@!%s>" % member.id): "@" + member.display_name
             for member in self.mentions
         }
 
@@ -401,26 +440,23 @@ class Message:
 
         if self.guild is not None:
             role_transforms = {
-                re.escape('<@&%s>' % role.id): '@' + role.name
+                re.escape("<@&%s>" % role.id): "@" + role.name
                 for role in self.role_mentions
             }
             transformations.update(role_transforms)
 
         def repl(obj):
-            return transformations.get(re.escape(obj.group(0)), '')
+            return transformations.get(re.escape(obj.group(0)), "")
 
-        pattern = re.compile('|'.join(transformations.keys()))
+        pattern = re.compile("|".join(transformations.keys()))
         result = pattern.sub(repl, self.content)
 
-        transformations = {
-            '@everyone': '@\u200beveryone',
-            '@here': '@\u200bhere'
-        }
+        transformations = {"@everyone": "@\u200beveryone", "@here": "@\u200bhere"}
 
         def repl2(obj):
-            return transformations.get(obj.group(0), '')
+            return transformations.get(obj.group(0), "")
 
-        pattern = re.compile('|'.join(transformations.keys()))
+        pattern = re.compile("|".join(transformations.keys()))
         return pattern.sub(repl2, result)
 
     @property
@@ -436,10 +472,12 @@ class Message:
     @property
     def jump_url(self):
         """:class:`str`: Returns a URL that allows the client to jump to this message."""
-        guild_id = getattr(self.guild, 'id', '@me')
-        return 'https://discordapp.com/channels/{0}/{1.channel.id}/{1.id}'.format(guild_id, self)
+        guild_id = getattr(self.guild, "id", "@me")
+        return "https://discordapp.com/channels/{0}/{1.channel.id}/{1.id}".format(
+            guild_id, self
+        )
 
-    @utils.cached_slot_property('_cs_system_content')
+    @utils.cached_slot_property("_cs_system_content")
     def system_content(self):
         r"""A property that returns the content that is rendered
         regardless of the :attr:`Message.type`.
@@ -453,19 +491,23 @@ class Message:
             return self.content
 
         if self.type is MessageType.pins_add:
-            return '{0.name} pinned a message to this channel.'.format(self.author)
+            return "{0.name} pinned a message to this channel.".format(self.author)
 
         if self.type is MessageType.recipient_add:
-            return '{0.name} added {1.name} to the group.'.format(self.author, self.mentions[0])
+            return "{0.name} added {1.name} to the group.".format(
+                self.author, self.mentions[0]
+            )
 
         if self.type is MessageType.recipient_remove:
-            return '{0.name} removed {1.name} from the group.'.format(self.author, self.mentions[0])
+            return "{0.name} removed {1.name} from the group.".format(
+                self.author, self.mentions[0]
+            )
 
         if self.type is MessageType.channel_name_change:
-            return '{0.author.name} changed the channel name: {0.content}'.format(self)
+            return "{0.author.name} changed the channel name: {0.content}".format(self)
 
         if self.type is MessageType.channel_icon_change:
-            return '{0.author.name} changed the channel icon.'.format(self)
+            return "{0.author.name} changed the channel icon.".format(self)
 
         if self.type is MessageType.new_member:
             formats = [
@@ -520,11 +562,13 @@ class Message:
             call_ended = self.call.ended_timestamp is not None
 
             if self.channel.me in self.call.participants:
-                return '{0.author.name} started a call.'.format(self)
+                return "{0.author.name} started a call.".format(self)
             elif call_ended:
-                return 'You missed a call from {0.author.name}'.format(self)
+                return "You missed a call from {0.author.name}".format(self)
             else:
-                return '{0.author.name} started a call \N{EM DASH} Join the call.'.format(self)
+                return "{0.author.name} started a call \N{EM DASH} Join the call.".format(
+                    self
+                )
 
     async def delete(self):
         """|coro|
@@ -571,30 +615,31 @@ class Message:
         """
 
         try:
-            content = fields['content']
+            content = fields["content"]
         except KeyError:
             pass
         else:
             if content is not None:
-                fields['content'] = str(content)
+                fields["content"] = str(content)
 
         try:
-            embed = fields['embed']
+            embed = fields["embed"]
         except KeyError:
             pass
         else:
             if embed is not None:
-                fields['embed'] = embed.to_dict()
+                fields["embed"] = embed.to_dict()
 
         data = await self._state.http.edit_message(self.id, self.channel.id, **fields)
         self._update(channel=self.channel, data=data)
 
         try:
-            delete_after = fields['delete_after']
+            delete_after = fields["delete_after"]
         except KeyError:
             pass
         else:
             if delete_after is not None:
+
                 async def delete():
                     await asyncio.sleep(delete_after, loop=self._state.loop)
                     try:
@@ -715,7 +760,9 @@ class Message:
         if member.id == self._state.self_id:
             await self._state.http.remove_own_reaction(self.id, self.channel.id, emoji)
         else:
-            await self._state.http.remove_reaction(self.id, self.channel.id, emoji, member.id)
+            await self._state.http.remove_reaction(
+                self.id, self.channel.id, emoji, member.id
+            )
 
     @staticmethod
     def _emoji_reaction(emoji):
@@ -723,13 +770,17 @@ class Message:
             emoji = emoji.emoji
 
         if isinstance(emoji, Emoji):
-            return '%s:%s' % (emoji.name, emoji.id)
+            return "%s:%s" % (emoji.name, emoji.id)
         if isinstance(emoji, PartialEmoji):
             return emoji._as_reaction()
         if isinstance(emoji, str):
-            return emoji # this is okay
+            return emoji  # this is okay
 
-        raise InvalidArgument('emoji argument must be str, Emoji, or Reaction not {.__class__.__name__}.'.format(emoji))
+        raise InvalidArgument(
+            "emoji argument must be str, Emoji, or Reaction not {.__class__.__name__}.".format(
+                emoji
+            )
+        )
 
     async def clear_reactions(self):
         """|coro|
@@ -764,5 +815,5 @@ class Message:
 
         state = self._state
         if state.is_bot:
-            raise ClientException('Must not be a bot account to ack messages.')
+            raise ClientException("Must not be a bot account to ack messages.")
         return state.http.ack_message(self.channel.id, self.id)

@@ -24,6 +24,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+
 class Permissions:
     """Wraps up the Discord permission value.
 
@@ -67,10 +68,14 @@ class Permissions:
         permissions via the properties rather than using this raw value.
     """
 
-    __slots__ = ('value',)
+    __slots__ = ("value",)
+
     def __init__(self, permissions=0):
         if not isinstance(permissions, int):
-            raise TypeError('Expected int parameter, received %s instead.' % permissions.__class__.__name__)
+            raise TypeError(
+                "Expected int parameter, received %s instead."
+                % permissions.__class__.__name__
+            )
 
         self.value = permissions
 
@@ -84,7 +89,7 @@ class Permissions:
         return hash(self.value)
 
     def __repr__(self):
-        return '<Permissions value=%s>' % self.value
+        return "<Permissions value=%s>" % self.value
 
     def _perm_iterator(self):
         for attr in dir(self):
@@ -101,14 +106,22 @@ class Permissions:
         if isinstance(other, Permissions):
             return (self.value & other.value) == self.value
         else:
-            raise TypeError("cannot compare {} with {}".format(self.__class__.__name__, other.__class__.__name__))
+            raise TypeError(
+                "cannot compare {} with {}".format(
+                    self.__class__.__name__, other.__class__.__name__
+                )
+            )
 
     def is_superset(self, other):
         """Returns True if self has the same or more permissions as other."""
         if isinstance(other, Permissions):
             return (self.value | other.value) == self.value
         else:
-            raise TypeError("cannot compare {} with {}".format(self.__class__.__name__, other.__class__.__name__))
+            raise TypeError(
+                "cannot compare {} with {}".format(
+                    self.__class__.__name__, other.__class__.__name__
+                )
+            )
 
     def is_strict_subset(self, other):
         """Returns True if the permissions on other are a strict subset of those on self."""
@@ -194,11 +207,11 @@ class Permissions:
 
     def _set(self, index, value):
         if value is True:
-            self.value |= (1 << index)
+            self.value |= 1 << index
         elif value is False:
             self.value &= ~(1 << index)
         else:
-            raise TypeError('Value to set for Permissions must be a bool.')
+            raise TypeError("Value to set for Permissions must be a bool.")
 
     def handle_overwrite(self, allow, deny):
         # Basically this is what's happening here.
@@ -492,14 +505,20 @@ class Permissions:
 
     # after these 32 bits, there's 21 more unused ones technically
 
+
 def augment_from_permissions(cls):
-    cls.VALID_NAMES = {name for name in dir(Permissions) if isinstance(getattr(Permissions, name), property)}
+    cls.VALID_NAMES = {
+        name
+        for name in dir(Permissions)
+        if isinstance(getattr(Permissions, name), property)
+    }
 
     # make descriptors for all the valid names
     for name in cls.VALID_NAMES:
         # god bless Python
         def getter(self, x=name):
             return self._values.get(x)
+
         def setter(self, value, x=name):
             self._set(x, value)
 
@@ -507,6 +526,7 @@ def augment_from_permissions(cls):
         setattr(cls, name, prop)
 
     return cls
+
 
 @augment_from_permissions
 class PermissionOverwrite:
@@ -538,20 +558,24 @@ class PermissionOverwrite:
         Set the value of permissions by their name.
     """
 
-    __slots__ = ('_values',)
+    __slots__ = ("_values",)
 
     def __init__(self, **kwargs):
         self._values = {}
 
         for key, value in kwargs.items():
             if key not in self.VALID_NAMES:
-                raise ValueError('no permission called {0}.'.format(key))
+                raise ValueError("no permission called {0}.".format(key))
 
             setattr(self, key, value)
 
     def _set(self, key, value):
         if value not in (True, None, False):
-            raise TypeError('Expected bool or NoneType, received {0.__class__.__name__}'.format(value))
+            raise TypeError(
+                "Expected bool or NoneType, received {0.__class__.__name__}".format(
+                    value
+                )
+            )
 
         self._values[key] = value
 

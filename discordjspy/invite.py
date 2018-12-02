@@ -28,6 +28,7 @@ from .utils import parse_time
 from .mixins import Hashable
 from .object import Object
 
+
 class Invite(Hashable):
     """Represents a Discord :class:`Guild` or :class:`abc.GuildChannel` invite.
 
@@ -77,53 +78,67 @@ class Invite(Hashable):
         The channel the invite is for.
     """
 
-
-    __slots__ = ('max_age', 'code', 'guild', 'revoked', 'created_at', 'uses',
-                 'temporary', 'max_uses', 'inviter', 'channel', '_state')
+    __slots__ = (
+        "max_age",
+        "code",
+        "guild",
+        "revoked",
+        "created_at",
+        "uses",
+        "temporary",
+        "max_uses",
+        "inviter",
+        "channel",
+        "_state",
+    )
 
     def __init__(self, *, state, data):
         self._state = state
-        self.max_age = data.get('max_age')
-        self.code = data.get('code')
-        self.guild = data.get('guild')
-        self.revoked = data.get('revoked')
-        self.created_at = parse_time(data.get('created_at'))
-        self.temporary = data.get('temporary')
-        self.uses = data.get('uses')
-        self.max_uses = data.get('max_uses')
+        self.max_age = data.get("max_age")
+        self.code = data.get("code")
+        self.guild = data.get("guild")
+        self.revoked = data.get("revoked")
+        self.created_at = parse_time(data.get("created_at"))
+        self.temporary = data.get("temporary")
+        self.uses = data.get("uses")
+        self.max_uses = data.get("max_uses")
 
-        inviter_data = data.get('inviter')
-        self.inviter = None if inviter_data is None else self._state.store_user(inviter_data)
-        self.channel = data.get('channel')
+        inviter_data = data.get("inviter")
+        self.inviter = (
+            None if inviter_data is None else self._state.store_user(inviter_data)
+        )
+        self.channel = data.get("channel")
 
     @classmethod
     def from_incomplete(cls, *, state, data):
-        guild_id = int(data['guild']['id'])
-        channel_id = int(data['channel']['id'])
+        guild_id = int(data["guild"]["id"])
+        channel_id = int(data["channel"]["id"])
         guild = state._get_guild(guild_id)
         if guild is not None:
             channel = guild.get_channel(channel_id)
         else:
             guild = Object(id=guild_id)
             channel = Object(id=channel_id)
-            guild.name = data['guild']['name']
+            guild.name = data["guild"]["name"]
 
-            guild.splash = data['guild']['splash']
-            guild.splash_url = ''
+            guild.splash = data["guild"]["splash"]
+            guild.splash_url = ""
             if guild.splash:
-                guild.splash_url = 'https://cdn.discordapp.com/splashes/{0.id}/{0.splash}.jpg?size=2048'.format(guild)
+                guild.splash_url = "https://cdn.discordapp.com/splashes/{0.id}/{0.splash}.jpg?size=2048".format(
+                    guild
+                )
 
-            channel.name = data['channel']['name']
+            channel.name = data["channel"]["name"]
 
-        data['guild'] = guild
-        data['channel'] = channel
+        data["guild"] = guild
+        data["channel"] = channel
         return cls(state=state, data=data)
 
     def __str__(self):
         return self.url
 
     def __repr__(self):
-        return '<Invite code={0.code!r}>'.format(self)
+        return "<Invite code={0.code!r}>".format(self)
 
     def __hash__(self):
         return hash(self.code)
@@ -136,7 +151,7 @@ class Invite(Hashable):
     @property
     def url(self):
         """A property that retrieves the invite URL."""
-        return 'http://discord.gg/' + self.code
+        return "http://discord.gg/" + self.code
 
     async def delete(self, *, reason=None):
         """|coro|

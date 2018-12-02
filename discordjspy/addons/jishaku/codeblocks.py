@@ -16,10 +16,10 @@ from collections import namedtuple
 
 from discordjspy.ext import commands
 
-__all__ = ('Codeblock', 'CODEBLOCK_REGEX', 'CodeblockConverter')
+__all__ = ("Codeblock", "CODEBLOCK_REGEX", "CodeblockConverter")
 
 
-Codeblock = namedtuple('Codeblock', 'language content')
+Codeblock = namedtuple("Codeblock", "language content")
 CODEBLOCK_REGEX = re.compile("^(?:```([A-Za-z0-9\\-\\.]*)\n)?(.+?)(?:\n+```)?$", re.S)
 
 
