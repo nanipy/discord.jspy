@@ -2,6 +2,7 @@ discord.jspy
 ==========
 
 .. image:: https://img.shields.io/badge/python-3.6%20%7C%203.7-blue.svg
+.. image:: https://img.shields.io/badge/code%20style-JavaScript-lightgrey.svg
 
 discord.jspy is an API wrapper for Discord written in Python using JavaScript code style.
 
