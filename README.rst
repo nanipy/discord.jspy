@@ -2,11 +2,13 @@ discord.jspy
 ==========
 
 .. image:: https://img.shields.io/badge/python-3.6%20%7C%203.7-blue.svg
-.. image:: https://img.shields.io/badge/code%20style-JavaScript-lightgrey.svg
+   :target: https://pypi.python.org/pypi/discord.jspy
+.. image:: https://img.shields.io/badge/code%20style-JavaScript-orange.svg
+   :target: https://github.com/nanipy/js.py
 
 discord.jspy is an API wrapper for Discord written in Python using JavaScript code style.
 
-This was written to allow easier writing of bots or chat logs. Make sure to familiarise yourself with the discord.py API using the `documentation <http://discordpy.rtfd.org/en/latest>`__.
+This was written to allow easier writing of bots or chat logs. Make sure to familiarise yourself with the discord.py API using the `documentation <http://discordpy.rtfd.org/en/rewrite>`__.
 
 Additions to discord.py rewrite
 -------------------------------
